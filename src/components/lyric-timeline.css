@@ -1,0 +1,31 @@
+.lyric-timeline { margin: 0; min-width: 0; }
+.lyric-timeline-tracks { display: grid; grid-template-columns: minmax(0, 1fr); overflow: hidden; border: 1px solid var(--lyrics-line); border-radius: 8px; }
+.lyric-timeline-scroll { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-color: #c5c5c1 #f4f4f2; scrollbar-width: auto; }
+.lyric-timeline-content { position: relative; height: 220px; overflow: clip; user-select: none; }
+.lyric-timeline-content > canvas { display: block; position: sticky; left: 0; cursor: crosshair; }
+.lyric-timeline.is-readonly :is(canvas, .lyric-clip-text) { cursor: default; }
+.lyric-timeline-clip { position: absolute; top: 146px; height: 56px; box-sizing: border-box; min-width: 2px; border: 1px solid #c9cdca; border-radius: 5px; background: #e8ece8; color: #303b34; }
+.lyric-timeline-clip.is-selected { border-color: var(--lyrics-brand); background: #f6e2df; color: var(--lyrics-brand-active); z-index: 2; }
+.lyric-timeline-clip.is-recording { border-style: dashed; background: #f6d5cf; z-index: 3; }
+.lyric-timeline-wave-selection { position: absolute; top: 32px; height: 96px; background: rgba(184,52,48,.055); pointer-events: none; }
+.lyric-clip-text { display: block; width: 100%; height: 100%; padding: 0 12px; border: 0; border-radius: inherit; background: transparent; color: inherit; font: inherit; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: left; cursor: pointer; }
+.lyric-timeline-clip.is-recording .lyric-clip-text { overflow: visible; text-overflow: clip; }
+.lyric-clip-edge { position: absolute; top: -1px; bottom: -1px; width: min(14px, 50%); padding: 0; border: 0; background: transparent; color: inherit; cursor: ew-resize; touch-action: none; }
+.lyric-clip-edge.is-start { left: 0; }
+.lyric-clip-edge.is-end { right: 0; }
+.lyric-timeline-content.is-resizing :is(button, canvas) { cursor: inherit !important; }
+.lyric-clip-edge i { display: block; width: 3px; height: 22px; margin: auto; border-radius: 1px; background: currentColor; opacity: .45; }
+.lyric-clip-edge:hover i, .lyric-clip-edge:focus-visible i { opacity: 1; }
+.lyric-clip-edge:disabled { cursor: default; opacity: .25; }
+.lyric-timeline-pending { position: absolute; top: 146px; height: 56px; display: flex; align-items: center; color: var(--lyrics-muted); font-size: 13px; white-space: nowrap; pointer-events: none; }
+.lyric-timeline-playhead { position: absolute; top: 0; bottom: 0; z-index: 4; width: 1px; background: var(--lyrics-brand); pointer-events: none; }
+.lyric-timeline-playhead > i { position: absolute; top: 0; left: -4px; width: 0; height: 0; border: 4.5px solid transparent; border-top: 8px solid var(--lyrics-brand); }
+.lyric-timeline-marker { position: absolute; top: 0; bottom: 0; z-index: 3; width: 0; border-left: 1px dashed #aa751f; pointer-events: none; }
+.lyric-timeline-marker > span { position: absolute; top: 5px; left: 3px; display: flex; align-items: center; justify-content: center; height: 19px; padding: 0 4px; box-sizing: border-box; border: 1px solid #bc9149; border-radius: 4px; background: #fff8e8; color: #805313; font: 600 11px ui-monospace, SFMono-Regular, monospace; white-space: nowrap; }
+.lyric-timeline-marker.is-current { border-color: #805313; border-left-width: 2px; }
+.lyric-timeline-marker.is-current > span { background: #805313; color: #fff; border-color: #805313; }
+.lyric-timeline-marker.is-near-end > span { left: auto; right: 4px; }
+.lyric-waveform-status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 30px; color: var(--lyrics-muted); font-size: 12px; }
+@media (max-width: 640px) {
+  .lyric-clip-edge { width: min(22px, 50%); }
+}

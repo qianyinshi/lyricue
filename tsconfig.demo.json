@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "lyricue": [
+        "./src/index.ts"
+      ],
+      "lyricue/core": [
+        "./src/core.ts"
+      ]
+    }
+  },
+  "include": [
+    "examples/standalone/main.ts",
+    "examples/standalone/demo-audio.ts",
+    "src/env.d.ts"
+  ]
+}
