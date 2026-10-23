@@ -14,12 +14,13 @@ The demo source is `examples/standalone/`. `base: './'` makes its JS and CSS wor
 
 ## Initial repository setup
 
-1. Open repository **Settings → Pages**.
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**. This requires a repository administrator or equivalent Pages-management permission.
-3. Push the source to `main`, or run **Deploy demo to GitHub Pages** from the Actions tab.
-4. Check the workflow's `github-pages` deployment URL.
+1. Push the source to `main`, or run **Deploy demo to GitHub Pages** from the Actions tab.
+2. The official `actions/configure-pages` step uses `enablement: true` to initialize a missing Pages site with the GitHub Actions source.
+3. Check the workflow's `github-pages` deployment URL.
 
-The workflow runs package checks, 65 logic tests, a real tarball consumption check, and the demo build before uploading the Pages artifact. Only the deployment job has `pages: write` and `id-token: write`; it does not publish npm packages. Ordinary pull requests build the demo through CI without deploying.
+If organization policy blocks automatic initialization, a repository administrator can open **Settings → Pages** and set **Source** to **GitHub Actions**, then rerun the workflow.
+
+The workflow runs package checks, 65 logic tests, a real tarball consumption check, and the demo build before uploading the Pages artifact. The build job has `pages: write` for initialization, and only the deployment job has `id-token: write`; it does not publish npm packages. Ordinary pull requests build the demo through CI without deploying.
 
 If `actions/configure-pages` reports that Pages cannot be found, first confirm that Pages is enabled with the GitHub Actions source. Do not change repository visibility, add tokens to code, or replace Pages with another hosting service as a workaround.
 
