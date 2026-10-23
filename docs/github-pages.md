@@ -15,7 +15,7 @@ The demo source is `examples/standalone/`. `base: './'` makes its JS and CSS wor
 ## Initial repository setup
 
 1. Push the source to `main`, or run **Deploy demo to GitHub Pages** from the Actions tab.
-2. The official `actions/configure-pages` step uses `enablement: true` to initialize a missing Pages site with the GitHub Actions source.
+2. The official `actions/configure-pages` step uses `enablement: true` to initialize a missing Pages site. The next step explicitly selects the GitHub Actions publishing source if the site was previously configured for a branch, preventing the default Jekyll README build from replacing the demo.
 3. Check the workflow's `github-pages` deployment URL.
 
 If organization policy blocks automatic initialization, a repository administrator can open **Settings → Pages** and set **Source** to **GitHub Actions**, then rerun the workflow.

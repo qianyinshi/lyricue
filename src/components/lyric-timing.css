@@ -26,7 +26,7 @@
 .lyric-rough-complete > button { margin-top: 16px; }
 .lyric-playback-preview { position: relative; box-sizing: border-box; height: 220px; margin-top: 16px; padding: 86px 24px; overflow: hidden; overflow-anchor: none; user-select: none; border-radius: 8px; background: #f8f8f6; text-align: center; scrollbar-width: none; }
 .lyric-playback-preview::-webkit-scrollbar { display: none; }
-.lyric-playback-preview p { display: flex; align-items: center; justify-content: center; min-height: 48px; margin: 0; color: #94948f; font-size: 20px; font-weight: 600; line-height: 1.7; overflow-wrap: anywhere; transition: color 160ms ease; }
+.lyric-playback-preview p { display: flex; align-items: center; justify-content: center; min-height: 48px; margin: 0; color: var(--lyrics-muted); font-size: 20px; font-weight: 600; line-height: 1.7; overflow-wrap: anywhere; transition: color 160ms ease; }
 .lyric-playback-preview p.is-active { color: var(--lyrics-brand); font-size: 24px; }
 @media (prefers-reduced-motion: reduce) {
   .lyric-playback-preview p { transition: none; }

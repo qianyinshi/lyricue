@@ -27,5 +27,5 @@
 .lyric-timeline-marker.is-near-end > span { left: auto; right: 4px; }
 .lyric-waveform-status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 30px; color: var(--lyrics-muted); font-size: 12px; }
 @media (max-width: 640px) {
-  .lyric-clip-edge { width: min(22px, 50%); }
+  .lyric-clip-edge { width: min(24px, 50%); }
 }
