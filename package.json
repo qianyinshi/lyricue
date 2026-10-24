@@ -1,7 +1,6 @@
 {
   "name": "lyricue",
   "version": "0.1.0",
-  "private": true,
   "description": "A zero-dependency Web Component for syncing lyrics to music, featuring audio waveforms, keyboard controls, and precise timeline editing.",
   "license": "MIT",
   "type": "module",
@@ -71,5 +70,9 @@
   "homepage": "https://qianyinshi.github.io/lyricue/",
   "bugs": {
     "url": "https://github.com/qianyinshi/lyricue/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }

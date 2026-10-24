@@ -6,7 +6,11 @@ A zero-dependency Web Component for syncing lyrics to music, featuring audio wav
 
 Lyricue works in plain HTML, React, Vue, or any other application that can host a custom element. It does not include a modal, router, authentication, storage, or a backend.
 
-> The npm package has not been published. Use a local tarball for now. `private: true` remains in the manifest to prevent accidental publication.
+Install from npm:
+
+```sh
+npm install lyricue
+```
 
 ## Features
 
@@ -274,7 +278,7 @@ npm run verify:package # Pack and install in a separate, framework-free project
 
 Package verification checks the public file allowlist, zero runtime/peer/transitive dependencies, Node imports, LRC round trips, and strict NodeNext consumer types. CI runs these checks on Node.js 22 and 24 without access to another repository.
 
-Before publishing, confirm npm name ownership and the version, remove `private: true`, verify the tarball, then publish explicitly. CI does not publish packages.
+Before publishing, confirm npm account permissions and the version, verify the tarball, then publish that exact tarball explicitly with `npm publish /path/to/lyricue-VERSION.tgz --access public --registry=https://registry.npmjs.org`. CI does not publish packages.
 
 ## License
 

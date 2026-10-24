@@ -17,7 +17,7 @@ const strings = {
   tapDescription: ['点一下空格，进入下一句。句与句连续衔接，自动去除所有空行。', 'Tap Space to advance to the next line. Lines connect continuously; empty lines are removed.'],
   holdDescription: ['按住空格开始一句，松开结束。句与句之间可以留白，自动去除所有空行。', 'Hold Space to start a line, release to end it. Leave gaps between lines; empty lines are removed.'], suno: ['自动去除 Suno 段落标记', 'Remove Suno section tags'],
   cancel: ['取消', 'Cancel'], apply: ['应用歌词', 'Apply lyrics'], close: ['关闭', 'Close'], usage: ['使用方法', 'Using Lyricue'],
-  install: ['安装', 'Install'], use: ['使用', 'Use'], installNote: ['npm 版本即将发布，目前可以从源码构建并安装。', 'The npm release is coming soon. For now, build and pack from source.'],
+  install: ['安装', 'Install'], use: ['使用', 'Use'], installNote: ['使用包管理器安装，无需额外的运行时依赖。', 'Install with your package manager. No runtime dependencies required.'],
   copy: ['复制代码', 'Copy code'], copied: ['已复制', 'Copied'], copyFailed: ['无法访问剪贴板，请手动选择代码复制。', 'Clipboard unavailable. Select the code to copy it.'],
   docs: ['完整文档', 'Full documentation'], replaceTitle: ['替换当前会话？', 'Replace this session?'], replaceNote: ['当前的打轴结果和标记将被重置。', 'Your current timing and markers will be reset.'], replace: ['替换', 'Replace'],
   empty: ['请至少输入一句歌词。', 'Add at least one line of lyrics.'], audioSize: ['请选择小于 100 MB 的音频。', 'Choose audio smaller than 100 MB.'],

@@ -2,7 +2,7 @@
 
 可嵌入页面、弹窗或侧栏的歌词打轴 **Web Component**。运行时和 peer dependencies 均为零；不依赖 React、Vue、Semi UI、Router 或业务 API。
 
-> MIT 开源。npm 包尚未发布；`private: true` 暂时保留以防误发布。
+> MIT 开源。可通过 npm 安装：`npm install lyricue`。
 
 [在线演示](https://qianyinshi.github.io/lyricue/) · [English](README.md)
 
@@ -18,18 +18,10 @@
 
 ## 安装与使用
 
-在本仓库根目录：
+在项目中安装：
 
 ```sh
-npm install
-npm run verify:package
-npm pack
-```
-
-在其他项目中安装生成的 `.tgz`：
-
-```sh
-npm install /path/to/lyricue-0.1.0.tgz
+npm install lyricue
 ```
 
 ```ts
@@ -239,7 +231,7 @@ npm run verify:package
 
 `verify:package` 检查、运行 65 项算法测试、构建、打包，并在工作区外的**无框架项目**安装真实 `.tgz`，校验无 runtime／peer dependencies、公开文件清单、Node 安全导入、纯算法 round trip 和严格 NodeNext 类型消费。命令输出临时项目与打包文件路径。
 
-发布前确认 npm 包名可用性、账号权限和版本，并移除 `private: true`。完成打包及独立使用验证后再执行 `npm publish --access public`，首版建议使用 `0.1.0` 或 `next` 预发布 tag。
+发布前确认 npm 账号权限和版本，完成打包及独立使用验证后，再显式发布同一份 tarball：`npm publish /path/to/lyricue-VERSION.tgz --access public --registry=https://registry.npmjs.org`。CI 不自动发布 npm。
 
 
 ## 单屏应用与中英文界面
