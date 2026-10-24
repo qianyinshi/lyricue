@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="A delightfully simple, zero-dependency lyrics timing tool. Sync lyrics, fine-tune the waveform timeline, and export LRC in your browser." />
-  <meta name="theme-color" content="#f6f6f2" />
+  <meta name="theme-color" content="#f6f6f2" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#151a17" media="(prefers-color-scheme: dark)" />
   <title>Lyricue · Put words in time</title>
   <link rel="icon" href="data:," />
 </head>
@@ -28,7 +29,7 @@
       <section class="field lyrics-field"><h2 data-i18n="lyrics">Lyrics to time</h2><div id="lyrics-preview" class="lyrics-preview"></div><div class="field-actions"><button class="link-button" id="edit-lyrics" type="button" data-i18n="edit">Edit</button><button class="link-button" id="upload-lyrics" type="button" data-i18n="upload">Upload</button><input id="lyrics-file" type="file" accept=".lrc,.txt,text/plain" hidden /></div></section>
       <section class="field mode-field" id="mode-field"><h2 data-i18n="mode">Recording mode</h2><p class="mode-name" id="mode-name">Tap mode</p><button class="link-button" id="mode" type="button" aria-haspopup="dialog" aria-controls="mode-dialog" data-i18n="edit">Edit</button></section>
     </aside>
-    <div class="editor-panel"><div class="editor-mount"><lyrics-editor id="rough-editor"></lyrics-editor><lyrics-editor id="refine-editor" hidden></lyrics-editor><noscript>Enable JavaScript to use the editor.</noscript></div></div>
+    <div class="editor-panel"><div class="editor-mount"><lyrics-editor id="rough-editor" theme="auto"></lyrics-editor><lyrics-editor id="refine-editor" theme="auto" hidden></lyrics-editor><noscript>Enable JavaScript to use the editor.</noscript></div></div>
   </section>
   <p id="message" class="app-message" role="status" hidden></p>
 </main>

@@ -117,7 +117,7 @@ function refineDocument(document: LyricDocument): LyricDocument {
   return { ...document, lines: document.lines.map((line, index) => ({ ...line, timeMs: Math.round(index * slot), endMs: Math.round((index + 1) * slot) })) };
 }
 function load(stage: Stage, document: LyricDocument) {
-  editors[stage].load({ audioSrc: audioURL, lyrics: document, mode: recordingMode, keyboardScope: 'page', locale, autoFocus: false, saveLabel: t('export'), keyboardEnabled: stage === activeStage && !dialogs.some(dialog => dialog.open) });
+  editors[stage].load({ audioSrc: audioURL, lyrics: document, mode: recordingMode, theme: 'auto', keyboardScope: 'page', locale, autoFocus: false, saveLabel: t('export'), keyboardEnabled: stage === activeStage && !dialogs.some(dialog => dialog.open) });
   dirty[stage] = false;
   phases[stage] = document.lines.every(line => line.timeMs !== null) ? 'refine' : 'rough';
 }
@@ -213,6 +213,7 @@ function refreshModeIllustrations() {
   for (const node of document.querySelectorAll<HTMLElement>('.mode-illustration')) renderModeIllustration(node, node.dataset.mode === 'hold' ? 'hold' : 'tap', locale);
 }
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', refreshModeIllustrations);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refreshModeIllustrations);
 $('#mode').addEventListener('click', () => {
   for (const card of document.querySelectorAll<HTMLButtonElement>('[data-recording-mode]')) card.setAttribute('aria-pressed', String(card.dataset.recordingMode === recordingMode));
   showDialog($<HTMLDialogElement>('#mode-dialog')); refreshModeIllustrations();

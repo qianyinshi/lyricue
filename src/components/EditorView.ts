@@ -5,6 +5,7 @@ import { buildAudioWaveform, type AudioWaveform } from '../lib/audio-waveform.js
 import type { LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorPhase } from '../types.js';
 import { Timeline } from './Timeline.js';
 import { PlaybackPreview } from './PlaybackPreview.js';
+import { EditorTheme } from './theme.js';
 import { translateUI } from './i18n.js';
 import { element, text, attr, button, keycap, icon } from './dom.js';
 
@@ -32,6 +33,7 @@ export class EditorView {
   private retry = button('重试音频', () => { this.mediaError = ''; this.ready = false; this.audio.load(); this.render(); });
   private complete = element('div', 'lyric-rough-complete');
   private timeline: Timeline;
+  private appearance: EditorTheme;
   private preview = new PlaybackPreview();
   private state: TimingState;
   private original: LyricDocument;
@@ -81,6 +83,7 @@ export class EditorView {
       seek: ms => this.seek(ms), change: (lines, index) => this.dispatch({ type: 'ranges', lines, index }), pause: () => this.pause(),
       audition: index => this.auditionLine(index), boundary: (index, edge, separate, lines) => this.auditionBoundary(index, edge, separate, lines) });
     this.root.append(this.label, this.audio, this.empty, this.timeline.root, this.waveStatus, this.complete, this.preview.root, this.footer);
+    this.appearance = new EditorTheme(this.root, this.options, () => this.render(), this.listeners.signal);
     this.timeline.setLocale(this.options.locale);
     this.setupAudio(); this.setupKeyboard();
     this.render();
@@ -90,7 +93,7 @@ export class EditorView {
   updateOptions(options: LyricsEditorOptions) {
     const changedLocale = options.locale !== this.options.locale; this.options = { ...options };
     if (changedLocale) { this.renderedPhase = null; this.timeline.setLocale(options.locale); }
-    this.render();
+    this.appearance.update(this.options); this.render();
   }
   private get playing() { return !this.audio.paused && !this.audio.ended; }
   private get dirty() {
@@ -139,6 +142,7 @@ export class EditorView {
     this.take = null; this.audio.pause(); this.render(); this.publish(); return true;
   }
   private record(input: LyricTake['input'] = 'keyboard') {
+    if (!this.hasStarted && !this.take && this.audio.currentTime === 0 && this.state.lines.every(line => line.timeMs === null)) { this.togglePlayback(); return; }
     if (this.take) { if (this.take.mode === 'tap' && !this.audio.paused) this.finishTake(true); }
     else this.startTake(input);
   }

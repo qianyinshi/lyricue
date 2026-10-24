@@ -104,6 +104,8 @@ The demo outputs to `demo-dist/`, separately from the library in `dist/`. Relati
 | `mode` | `mode` | `'tap'` | `'tap'` or `'hold'`; fixed during a session |
 | `saveLabel` | `save-label` | `'保存歌词'` | Save button label |
 | `showSave` | `hide-save` (inverse) | `true` | Show the save button |
+| `theme` | `theme` | `'light'` | `'light'`, `'dark'`, or `'auto'` (follow live system changes) |
+| `colors` | JS property only | `{}` | Semantic CSS color overrides; omitted keys use the theme/host palette |
 | `locale` | `locale` | `'zh-CN'` | `'zh-CN'` or `'en'`; UI only, never translates lyric content |
 | `keyboardScope` | `keyboard-scope` | `'focused'` | Opt into `'page'` for an editor app with page-wide shortcuts |
 | `keyboardEnabled` | `keyboard-disabled` (inverse) | `true` | Enable shortcuts and keyboard activation |
@@ -192,7 +194,7 @@ By default, shortcuts apply only to the focused editor; `keyboardScope: 'page'` 
 | Key | Rough timing | Refinement |
 | --- | --- | --- |
 | Enter | Start/pause; hold mode commits before pausing | Play/pause |
-| Space | Advance a line, or hold to start/release to end | Play/pause |
+| Space | On a fresh take at zero, start playback without marking a line; afterward advance, or hold to start/release to end | Play/pause |
 | Backspace | Redo the previous line; the first line returns to 0 | — |
 | L | Add a marker | Add/remove the current marker |
 | Left/right | Seek backward/forward | Previous/next marker |
@@ -218,7 +220,31 @@ The root module can be imported in Node.js, but registration and rendering requi
 
 ## Styling and audio
 
-Shadow DOM encapsulates the built-in light appearance. Customize through inherited CSS variables:
+Shadow DOM encapsulates the appearance. The default remains `light`; set `theme="dark"` or pass `theme: 'auto'` to follow the system, including changes while the editor is open. Theme and color updates preserve playback, recording, history and markers.
+
+```ts
+editor.theme = 'dark';
+editor.colors = {
+  accent: '#8fb9ff',
+  accentActive: '#bad5ff',
+  onAccent: '#0d2240',
+  waveform: '#9ac3ff',
+};
+// Also accepted by editor.load({ audioSrc, lyrics, theme, colors }).
+```
+
+`LyricsEditorTheme` and `LyricsEditorColors` are exported types. The `colors` object replaces the previous overrides; assign `{}` to restore the theme and inherited CSS palette. Getters and load options use detached copies. Invalid color values fall back to the normal palette.
+
+Available semantic color keys:
+
+| Area | Keys |
+| --- | --- |
+| Actions | `accent`, `accentActive`, `onAccent` |
+| Surfaces and text | `background`, `surface`, `text`, `muted`, `border` |
+| Timeline and waveform | `waveform`, `waveformBackground`, `rulerBackground`, `trackBackground`, `grid`, `clipBackground`, `clipText` |
+| Markers | `marker`, `markerBackground`, `markerText` |
+
+Selections, recording clips, hover states and scrollbars derive from these colors. The canvas waveform uses the same palette as the DOM. You can also customize through inherited CSS variables; camelCase keys become `--lyrics-editor-kebab-case` (for example, `waveformBackground` becomes `--lyrics-editor-waveform-background`). Explicit JS color options take precedence. The existing CSS hooks continue to work:
 
 ```css
 lyrics-editor {
@@ -241,7 +267,7 @@ The host owns authorization, signed URLs, file-size limits, persistence, and Blo
 
 ```sh
 npm run check          # ESLint and TypeScript
-npm test               # 65 timing, recording, waveform and marker tests
+npm test               # Timing, recording, waveform, marker and UI logic tests
 npm run build          # ESM and declarations
 npm run verify:package # Pack and install in a separate, framework-free project
 ```

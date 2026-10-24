@@ -5,13 +5,13 @@
 .lyric-editor-status { display: inline-flex; align-items: center; min-height: 28px; box-sizing: border-box; }
 .lyric-timing-footer .lyric-keyboard-hints { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .lyric-keyboard-hints > span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-.lyric-keyboard-hints kbd { display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; min-width: 25px; height: 25px; padding: 0 6px; border: 1px solid var(--lyrics-line); border-bottom-width: 2px; border-radius: 4px; background: #fafaf9; color: var(--lyrics-ink); font: inherit; }
+.lyric-keyboard-hints kbd { display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; min-width: 25px; height: 25px; padding: 0 6px; border: 1px solid var(--lyrics-line); border-bottom-width: 2px; border-radius: 4px; background: var(--lyrics-surface); color: var(--lyrics-ink); font: inherit; }
 .lyric-keyboard-hints .is-highlighted { color: var(--lyrics-brand); }
-.lyric-keyboard-hints .is-highlighted kbd { border-color: var(--lyrics-brand); background: #fff; color: var(--lyrics-brand); font-weight: 600; }
+.lyric-keyboard-hints .is-highlighted kbd { border-color: var(--lyrics-brand); background: var(--lyrics-background); color: var(--lyrics-brand); font-weight: 600; }
 .lyric-shortcut-key { display: inline-flex; flex-shrink: 0; padding: 0; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; touch-action: none; }
 .lyric-shortcut-key:not(:disabled):hover kbd { border-color: var(--lyrics-brand); color: var(--lyrics-brand); }
-.lyric-shortcut-key:not(:disabled):active kbd, .lyric-shortcut-key.is-held kbd { border-color: var(--lyrics-brand); background: #f6e2df; color: var(--lyrics-brand); }
-.lyric-shortcut-key[aria-pressed="true"] kbd { border-color: #bc9149; background: #fff8e8; color: #805313; }
+.lyric-shortcut-key:not(:disabled):active kbd, .lyric-shortcut-key.is-held kbd { border-color: var(--lyrics-brand); background: var(--lyrics-selected-background); color: var(--lyrics-brand); }
+.lyric-shortcut-key[aria-pressed="true"] kbd { border-color: var(--lyrics-marker); background: var(--lyrics-marker-background); color: var(--lyrics-marker-text); }
 .lyric-shortcut-key:disabled { cursor: default; opacity: .4; }
 .lyric-keyboard-hints svg { display: block; width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 .lyric-keyboard-hints .lyric-marker-direction-icon { stroke-width: 1.5; }
@@ -24,7 +24,7 @@
 .lyric-rough-complete h2 { margin: 20px 0 12px; font-size: 24px; font-weight: 600; }
 .lyric-rough-complete p { color: var(--lyrics-muted); font-size: 15px; line-height: 1.9; }
 .lyric-rough-complete > button { margin-top: 16px; }
-.lyric-playback-preview { position: relative; box-sizing: border-box; height: 220px; margin-top: 16px; padding: 86px 24px; overflow: hidden; overflow-anchor: none; user-select: none; border-radius: 8px; background: #f8f8f6; text-align: center; scrollbar-width: none; }
+.lyric-playback-preview { position: relative; box-sizing: border-box; height: 220px; margin-top: 16px; padding: 86px 24px; overflow: hidden; overflow-anchor: none; user-select: none; border-radius: 8px; background: var(--lyrics-surface); text-align: center; scrollbar-width: none; }
 .lyric-playback-preview::-webkit-scrollbar { display: none; }
 .lyric-playback-preview p { display: flex; align-items: center; justify-content: center; min-height: 48px; margin: 0; color: var(--lyrics-muted); font-size: 20px; font-weight: 600; line-height: 1.7; overflow-wrap: anywhere; transition: color 160ms ease; }
 .lyric-playback-preview p.is-active { color: var(--lyrics-brand); font-size: 24px; }

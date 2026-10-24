@@ -1,4 +1,4 @@
-import type { LyricsEditorElement, LyricsEditorOptions, LyricsEditorEventDetails } from './types.js';
+import type { LyricsEditorElement, LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorTheme, LyricsEditorColors } from './types.js';
 import type { LyricDocument } from './lib/lyric-timing.js';
 import type { RecordingMode } from './lib/lyric-recording.js';
 import { parseLyrics } from './lib/lyric-timing.js';
@@ -13,7 +13,7 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
   if (!target || typeof HTMLElement === 'undefined') throw new Error('defineLyricsEditor requires a browser with Custom Elements. Use /core in Node.js.');
   const existing = target.get(tagName); if (existing) return existing;
   class NativeLyricsEditor extends HTMLElement implements LyricsEditorElement {
-    static observedAttributes = ['audio-src', 'lyrics', 'mode', 'save-label', 'hide-save', 'keyboard-disabled', 'no-unload-guard', 'autofocus', 'keyboard-scope', 'locale'];
+    static observedAttributes = ['audio-src', 'lyrics', 'mode', 'save-label', 'hide-save', 'keyboard-disabled', 'no-unload-guard', 'autofocus', 'keyboard-scope', 'locale', 'theme'];
     private options: LyricsEditorOptions = { audioSrc: '', lyrics: '', mode: 'tap' };
     private view: EditorView | null = null;
     private saved: ViewSnapshot | undefined;
@@ -25,7 +25,7 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
       style.textContent = ':host{display:block;min-width:0}:host([hidden]),[hidden]{display:none!important}' + editorCSS + timingCSS + timelineCSS;
       shadow.append(style);
       // Honor properties assigned before the custom element definition was loaded.
-      for (const name of ['audioSrc', 'lyrics', 'mode', 'keyboardEnabled', 'preventUnload', 'showSave', 'saveLabel', 'keyboardScope', 'locale'] as const) {
+      for (const name of ['audioSrc', 'lyrics', 'mode', 'keyboardEnabled', 'preventUnload', 'showSave', 'saveLabel', 'keyboardScope', 'locale', 'theme', 'colors'] as const) {
         if (Object.prototype.hasOwnProperty.call(this, name)) {
           const value = this[name]; delete (this as unknown as Record<string, unknown>)[name];
           (this as unknown as Record<string, unknown>)[name] = value;
@@ -53,6 +53,7 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
       if (name === 'keyboard-disabled') this.options.keyboardEnabled = value === null;
       if (name === 'no-unload-guard') this.options.preventUnload = value === null;
       if (name === 'keyboard-scope') this.options.keyboardScope = value === 'page' ? 'page' : 'focused';
+      if (name === 'theme') this.options.theme = value === 'dark' || value === 'auto' ? value : 'light';
       if (name === 'locale') this.options.locale = value === 'en' ? 'en' : 'zh-CN';
       if (name === 'autofocus') this.options.autoFocus = value !== null;
       if (['audio-src', 'lyrics', 'mode'].includes(name)) this.reset(); else this.view?.updateOptions(this.options);
@@ -70,7 +71,7 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
       this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, composed: true }));
     }
     load(options: LyricsEditorOptions) {
-      this.options = { ...this.options, ...options, lyrics: typeof options.lyrics === 'string' ? options.lyrics : copyDocument(options.lyrics) }; this.reset();
+      this.options = { ...this.options, ...options, colors: { ...(options.colors ?? this.options.colors) }, lyrics: typeof options.lyrics === 'string' ? options.lyrics : copyDocument(options.lyrics) }; this.reset();
     }
     get audioSrc() { return this.options.audioSrc; }
     set audioSrc(value: string) { if (value !== this.options.audioSrc) { this.options.audioSrc = value; this.reset(); } }
@@ -84,6 +85,10 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
     set keyboardScope(value: 'focused' | 'page') { this.options.keyboardScope = value; this.view?.updateOptions(this.options); }
     get locale() { return this.options.locale ?? 'zh-CN'; }
     set locale(value: 'zh-CN' | 'en') { this.options.locale = value; this.view?.updateOptions(this.options); }
+    get theme() { return this.options.theme ?? 'light'; }
+    set theme(value: LyricsEditorTheme) { this.options.theme = value === 'auto' || value === 'dark' ? value : 'light'; this.view?.updateOptions(this.options); }
+    get colors() { return { ...this.options.colors }; }
+    set colors(value: LyricsEditorColors) { this.options.colors = { ...value }; this.view?.updateOptions(this.options); }
     get preventUnload() { return this.options.preventUnload !== false; }
     set preventUnload(value: boolean) { this.options.preventUnload = Boolean(value); this.view?.updateOptions(this.options); }
     get showSave() { return this.options.showSave !== false; }

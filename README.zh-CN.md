@@ -251,3 +251,25 @@ npm run verify:package
 打开编辑弹窗或文件选择器前调用 `pause(true)`，点按模式会保留正在打轴的句子，长按模式会提交当前句。默认 `pause()` 行为不变。交互期间禁用 `keyboardEnabled`，结束后恢复快捷键，由用户手动继续播放。
 
 可通过 `::part(phase-label)` 与 `::part(footer)` 调整提示和底部区域；原有 `editor`、`timeline`、`preview` part 继续可用。
+
+
+## 明暗主题与颜色配置
+
+组件的 `theme` 属性／选项（HTML 同名）支持 `'light'`、`'dark'`、`'auto'`。默认保持 `'light'` 以兼容既有集成；`'auto'` 会实时响应系统明暗变化。演示页默认使用 `'auto'`。切换主题或颜色不会重建节点、暂停播放或丢失打轴、撤销历史和标记。
+
+```ts
+editor.theme = 'dark';
+editor.colors = {
+  accent: '#8fb9ff',
+  accentActive: '#bad5ff',
+  onAccent: '#0d2240',
+  waveform: '#9ac3ff',
+};
+// load({ audioSrc, lyrics, theme, colors }) 也支持这些选项。
+```
+
+导出类型 `LyricsEditorTheme`、`LyricsEditorColors`。`colors` 支持 `accent`、`accentActive`、`onAccent`、`background`、`surface`、`text`、`muted`、`border`、`waveform`、`waveformBackground`、`rulerBackground`、`trackBackground`、`grid`、`clipBackground`、`clipText`、`marker`、`markerBackground`、`markerText`。选中、录制、悬浮、滚动条颜色由语义颜色派生；Canvas 波形和 DOM 使用同一套配色。值可使用合法 CSS 颜色；非法值回退至正常配色。
+
+`colors` 替换之前的覆盖项，赋值 `{}` 恢复主题／宿主样式；传入和读取均为独立副本。原有 CSS 变量继续可用，新颜色使用 `--lyrics-editor-` 加 kebab-case，例如 `--lyrics-editor-waveform-background`。显式传入的 JS 颜色优先于宿主 CSS 变量。
+
+初始状态下（播放头在零点，尚未启动且歌词都未打轴），第一次空格只启动音乐，不标记第一句，与回车相同。之后再按空格才开始记录；点按和长按模式都遵循此规则。

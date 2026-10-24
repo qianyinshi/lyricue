@@ -242,20 +242,23 @@ export class Timeline {
   }
   private paint() {
     const d = this.data!, width = this.viewport.clientWidth, left = this.viewport.scrollLeft, pps = this.pps, step = rulerStep(pps);
-    const ratio = window.devicePixelRatio || 1, key = [width, left, pps, d.durationMs, ratio].join(':');
+    const styles = getComputedStyle(this.root);
+    const color = (name: string, fallback: string) => styles.getPropertyValue('--lyrics-' + name).trim() || fallback;
+    const palette = { ruler: color('ruler-background', '#f6f6f4'), waveBackground: color('wave-background', '#f8faf8'), track: color('track-background', '#fcfcfb'), grid: color('grid', '#e5e7e3'), text: color('muted', '#656565'), waveform: color('waveform', '#688276') };
+    const ratio = window.devicePixelRatio || 1, key = [width, left, pps, d.durationMs, ratio, ...Object.values(palette)].join(':');
     if (key === this.paintKey && this.paintedWave === d.waveform) return;
     this.paintKey = key; this.paintedWave = d.waveform;
     const ctx = this.canvas.getContext('2d'); if (!ctx || !width) return;
     this.canvas.width = Math.round(width * ratio); this.canvas.height = HEIGHT * ratio; this.canvas.style.width = width + 'px'; this.canvas.style.height = HEIGHT + 'px'; ctx.scale(ratio, ratio);
     attr(this.canvas, 'aria-label', translate(d.waveform ? '真实音频波形' : '音频波形待加载', this.locale));
-    ctx.fillStyle = '#f6f6f4'; ctx.fillRect(0, 0, width, RULER); ctx.fillStyle = '#f8faf8'; ctx.fillRect(0, RULER, width, WAVE_HEIGHT); ctx.fillStyle = '#fcfcfb'; ctx.fillRect(0, RULER + WAVE_HEIGHT, width, HEIGHT); ctx.font = '11px ui-monospace, SFMono-Regular, monospace';
+    ctx.fillStyle = palette.ruler; ctx.fillRect(0, 0, width, RULER); ctx.fillStyle = palette.waveBackground; ctx.fillRect(0, RULER, width, WAVE_HEIGHT); ctx.fillStyle = palette.track; ctx.fillRect(0, RULER + WAVE_HEIGHT, width, HEIGHT); ctx.font = '11px ui-monospace, SFMono-Regular, monospace';
     const fromMs = left / pps * 1000, toMs = Math.min(d.durationMs, (left + width) / pps * 1000);
     for (let time = Math.floor(fromMs / step) * step; time <= toMs; time += step) {
-      const x = time / 1000 * pps - left; ctx.strokeStyle = '#e5e7e3'; ctx.beginPath(); ctx.moveTo(x + .5, RULER - 6); ctx.lineTo(x + .5, HEIGHT); ctx.stroke(); ctx.fillStyle = '#656565'; ctx.fillText(formatLyricTime(time).slice(0, step >= 1000 ? -4 : undefined), x + 5, 18);
+      const x = time / 1000 * pps - left; ctx.strokeStyle = palette.grid; ctx.beginPath(); ctx.moveTo(x + .5, RULER - 6); ctx.lineTo(x + .5, HEIGHT); ctx.stroke(); ctx.fillStyle = palette.text; ctx.fillText(formatLyricTime(time).slice(0, step >= 1000 ? -4 : undefined), x + 5, 18);
     }
-    const middle = RULER + WAVE_HEIGHT / 2; ctx.strokeStyle = '#d5dcd6'; ctx.beginPath(); ctx.moveTo(0, middle + .5); ctx.lineTo(width, middle + .5); ctx.stroke();
+    const middle = RULER + WAVE_HEIGHT / 2; ctx.strokeStyle = palette.grid; ctx.beginPath(); ctx.moveTo(0, middle + .5); ctx.lineTo(width, middle + .5); ctx.stroke();
     const wave = d.waveform; if (!wave) return;
-    ctx.strokeStyle = '#688276'; ctx.beginPath(); const heightScale = (WAVE_HEIGHT / 2 - 9) / Math.max(wave.peak, .00001);
+    ctx.strokeStyle = palette.waveform; ctx.beginPath(); const heightScale = (WAVE_HEIGHT / 2 - 9) / Math.max(wave.peak, .00001);
     for (let x = 0; x < width; x++) {
       const from = Math.max(0, Math.floor((fromMs + x / pps * 1000) / wave.binMs)), to = Math.min(wave.min.length, Math.max(from + 1, Math.ceil((fromMs + (x + 1) / pps * 1000) / wave.binMs)));
       let low = 0, high = 0; for (let bin = from; bin < to; bin++) { low = Math.min(low, wave.min[bin]); high = Math.max(high, wave.max[bin]); }

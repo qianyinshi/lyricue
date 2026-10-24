@@ -1,15 +1,51 @@
 .lyrics-editor {
-  --lyrics-brand: var(--lyrics-editor-accent, #b83430);
-  --lyrics-brand-active: var(--lyrics-editor-accent-active, #842321);
-  --lyrics-ink: var(--lyrics-editor-text, #242424);
-  --lyrics-muted: var(--lyrics-editor-muted, #656565);
-  --lyrics-line: var(--lyrics-editor-border, rgba(36, 36, 36, .1));
+  --lyrics-default-accent: #b83430;
+  --lyrics-default-accent-active: #842321;
+  --lyrics-default-on-accent: #ffffff;
+  --lyrics-default-background: #ffffff;
+  --lyrics-default-surface: #f8f8f6;
+  --lyrics-default-text: #242424;
+  --lyrics-default-muted: #656565;
+  --lyrics-default-border: #d9ded9;
+  --lyrics-default-waveform: #688276;
+  --lyrics-default-waveform-background: #f8faf8;
+  --lyrics-default-ruler-background: #f6f6f4;
+  --lyrics-default-track-background: #fcfcfb;
+  --lyrics-default-grid: #e5e7e3;
+  --lyrics-default-clip-background: #e8ece8;
+  --lyrics-default-clip-text: #303b34;
+  --lyrics-default-marker: #aa751f;
+  --lyrics-default-marker-background: #fff8e8;
+  --lyrics-default-marker-text: #805313;
+  --lyrics-brand: var(--lyrics-editor-accent, var(--lyrics-default-accent));
+  --lyrics-brand-active: var(--lyrics-editor-accent-active, var(--lyrics-default-accent-active));
+  --lyrics-on-accent: var(--lyrics-editor-on-accent, var(--lyrics-default-on-accent));
+  --lyrics-background: var(--lyrics-editor-background, var(--lyrics-default-background));
+  --lyrics-surface: var(--lyrics-editor-surface, var(--lyrics-default-surface));
+  --lyrics-ink: var(--lyrics-editor-text, var(--lyrics-default-text));
+  --lyrics-muted: var(--lyrics-editor-muted, var(--lyrics-default-muted));
+  --lyrics-line: var(--lyrics-editor-border, var(--lyrics-default-border));
+  --lyrics-waveform: var(--lyrics-editor-waveform, var(--lyrics-default-waveform));
+  --lyrics-wave-background: var(--lyrics-editor-waveform-background, var(--lyrics-default-waveform-background));
+  --lyrics-ruler-background: var(--lyrics-editor-ruler-background, var(--lyrics-default-ruler-background));
+  --lyrics-track-background: var(--lyrics-editor-track-background, var(--lyrics-default-track-background));
+  --lyrics-grid: var(--lyrics-editor-grid, var(--lyrics-default-grid));
+  --lyrics-clip-background: var(--lyrics-editor-clip-background, var(--lyrics-default-clip-background));
+  --lyrics-clip-text: var(--lyrics-editor-clip-text, var(--lyrics-default-clip-text));
+  --lyrics-marker: var(--lyrics-editor-marker, var(--lyrics-default-marker));
+  --lyrics-marker-background: var(--lyrics-editor-marker-background, var(--lyrics-default-marker-background));
+  --lyrics-marker-text: var(--lyrics-editor-marker-text, var(--lyrics-default-marker-text));
+  --lyrics-surface-hover: color-mix(in srgb, var(--lyrics-surface), var(--lyrics-ink) 7%);
+  --lyrics-selected-background: color-mix(in srgb, var(--lyrics-brand) 15%, var(--lyrics-background));
+  --lyrics-recording-background: color-mix(in srgb, var(--lyrics-brand) 24%, var(--lyrics-background));
+  --lyrics-wave-selection: color-mix(in srgb, var(--lyrics-brand) 8%, transparent);
+  --lyrics-scrollbar: color-mix(in srgb, var(--lyrics-muted) 50%, var(--lyrics-surface));
   min-width: 0;
   font-family: var(--lyrics-editor-font-family, "PingFang SC", system-ui, sans-serif);
   font-size: 14px;
   line-height: 1.5;
   color: var(--lyrics-ink);
-  color-scheme: light;
+  background: var(--lyrics-background);
 }
 .lyrics-editor, .lyrics-editor * { box-sizing: border-box; }
 .lyrics-editor button { font-family: inherit; }
@@ -17,11 +53,32 @@
 .lyrics-editor .lyric-editor-button {
   display: inline-flex; justify-content: center; align-items: center; gap: 6px;
   min-height: 32px; padding: 5px 12px; border: 1px solid transparent; border-radius: 4px;
-  background: #f4f4f3; color: var(--lyrics-brand); font-size: 14px; line-height: 20px;
+  background: var(--lyrics-surface); color: var(--lyrics-brand); font-size: 14px; line-height: 20px;
   cursor: pointer; white-space: nowrap; transform: none;
 }
-.lyrics-editor .lyric-editor-button:hover { background: #ebebea; }
-.lyrics-editor .lyric-editor-button.is-primary { background: var(--lyrics-brand); color: #fff; }
+.lyrics-editor .lyric-editor-button:hover { background: var(--lyrics-surface-hover); }
+.lyrics-editor .lyric-editor-button.is-primary { background: var(--lyrics-brand); color: var(--lyrics-on-accent); }
 .lyrics-editor .lyric-editor-button.is-primary:hover { background: var(--lyrics-brand-active); }
 .lyrics-editor .lyric-editor-button:disabled { opacity: .4; cursor: default; }
 .lyric-editor-icon { display: inline-block; width: 1em; height: 1em; flex-shrink: 0; vertical-align: middle; }
+
+.lyrics-editor[data-theme="dark"] {
+  --lyrics-default-accent: #f0aaa0;
+  --lyrics-default-accent-active: #f7c0b8;
+  --lyrics-default-on-accent: #341c18;
+  --lyrics-default-background: #1f2522;
+  --lyrics-default-surface: #29312c;
+  --lyrics-default-text: #ecf0e8;
+  --lyrics-default-muted: #b5beb6;
+  --lyrics-default-border: #465249;
+  --lyrics-default-waveform: #99bda9;
+  --lyrics-default-waveform-background: #202a24;
+  --lyrics-default-ruler-background: #29302b;
+  --lyrics-default-track-background: #232a25;
+  --lyrics-default-grid: #39463d;
+  --lyrics-default-clip-background: #334238;
+  --lyrics-default-clip-text: #d9e7dd;
+  --lyrics-default-marker: #d8ae67;
+  --lyrics-default-marker-background: #392d1c;
+  --lyrics-default-marker-text: #f0cc8f;
+}

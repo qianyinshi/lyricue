@@ -11,6 +11,7 @@ export const integrationExamples = {
     lyrics: 'First line\nSecond line',
     mode: 'tap',
     locale: 'en',
+    theme: 'auto',
   });
   editor.addEventListener('lyrics-save', ({ detail }) => {
     console.log(detail.lyrics);
@@ -30,6 +31,7 @@ export default function App() {
       lyrics: 'First line\nSecond line',
       mode: 'tap',
       locale: 'en',
+      theme: 'auto',
     });
     const onSave = ({ detail }) => console.log(detail.lyrics);
     editor.addEventListener('lyrics-save', onSave);
@@ -59,6 +61,7 @@ onMounted(() => {
     lyrics: 'First line\nSecond line',
     mode: 'tap',
     locale: 'en',
+    theme: 'auto',
   });
   editor.addEventListener('lyrics-save', onSave);
   mount.value.append(editor);

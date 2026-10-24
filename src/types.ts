@@ -1,6 +1,15 @@
 import type { LyricDocument } from './lib/lyric-timing.js';
 import type { RecordingMode } from './lib/lyric-recording.js';
 
+export type LyricsEditorTheme = 'light' | 'dark' | 'auto';
+/** CSS color values; omitted keys use the active theme palette. */
+export interface LyricsEditorColors {
+  accent?: string; accentActive?: string; onAccent?: string;
+  background?: string; surface?: string; text?: string; muted?: string; border?: string;
+  waveform?: string; waveformBackground?: string; rulerBackground?: string; trackBackground?: string; grid?: string;
+  clipBackground?: string; clipText?: string; marker?: string; markerBackground?: string; markerText?: string;
+}
+
 export type LyricsEditorPhase = 'rough' | 'complete' | 'refine';
 export interface LyricsEditorResult { lyrics: string; document: LyricDocument }
 export interface LyricsEditorOptions {
@@ -14,6 +23,8 @@ export interface LyricsEditorOptions {
   /** Opt-in page shortcuts. Dialogs, text fields and other editors keep their keys. */
   keyboardScope?: 'focused' | 'page';
   locale?: 'zh-CN' | 'en';
+  theme?: LyricsEditorTheme;
+  colors?: LyricsEditorColors;
   preventUnload?: boolean;
 }
 export interface LyricsEditorEventDetails {
@@ -31,6 +42,8 @@ export interface LyricsEditorElement extends HTMLElement {
   keyboardEnabled: boolean;
   keyboardScope: 'focused' | 'page';
   locale: 'zh-CN' | 'en';
+  theme: LyricsEditorTheme;
+  colors: LyricsEditorColors;
   preventUnload: boolean;
   showSave: boolean;
   saveLabel: string;
