@@ -11,6 +11,9 @@ export interface LyricsEditorOptions {
   showSave?: boolean;
   autoFocus?: boolean;
   keyboardEnabled?: boolean;
+  /** Opt-in page shortcuts. Dialogs, text fields and other editors keep their keys. */
+  keyboardScope?: 'focused' | 'page';
+  locale?: 'zh-CN' | 'en';
   preventUnload?: boolean;
 }
 export interface LyricsEditorEventDetails {
@@ -26,13 +29,15 @@ export interface LyricsEditorElement extends HTMLElement {
   lyrics: string | LyricDocument;
   mode: RecordingMode;
   keyboardEnabled: boolean;
+  keyboardScope: 'focused' | 'page';
+  locale: 'zh-CN' | 'en';
   preventUnload: boolean;
   showSave: boolean;
   saveLabel: string;
   /** Replace the editing session, including undo history, markers and playback. */
   load: (options: LyricsEditorOptions) => void;
-  /** Pause playback and commit an open phrase. Enter preserves a tap phrase instead. */
-  pause: () => void;
+  /** Pause playback. Pass true to preserve an open tap phrase; hold phrases always commit. */
+  pause: (preserveTapPhrase?: boolean) => void;
   requestClose: () => void;
   getDocument: () => LyricDocument;
   addEventListener<K extends keyof LyricsEditorEventMap>(type: K, listener: (this: LyricsEditorElement, event: LyricsEditorEventMap[K]) => void, options?: boolean | AddEventListenerOptions): void;

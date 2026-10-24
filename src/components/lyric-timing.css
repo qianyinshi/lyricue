@@ -39,3 +39,7 @@
   .lyric-playback-preview p { font-size: 18px; }
   .lyric-playback-preview p.is-active { font-size: 22px; }
 }
+@media (max-width:380px) {
+  .lyric-timing-footer .lyric-keyboard-hints { font-size:10px; gap:4px 9px; }
+  .lyric-keyboard-hints kbd { padding-inline:4px; }
+}

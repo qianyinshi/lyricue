@@ -13,7 +13,7 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
   if (!target || typeof HTMLElement === 'undefined') throw new Error('defineLyricsEditor requires a browser with Custom Elements. Use /core in Node.js.');
   const existing = target.get(tagName); if (existing) return existing;
   class NativeLyricsEditor extends HTMLElement implements LyricsEditorElement {
-    static observedAttributes = ['audio-src', 'lyrics', 'mode', 'save-label', 'hide-save', 'keyboard-disabled', 'no-unload-guard', 'autofocus'];
+    static observedAttributes = ['audio-src', 'lyrics', 'mode', 'save-label', 'hide-save', 'keyboard-disabled', 'no-unload-guard', 'autofocus', 'keyboard-scope', 'locale'];
     private options: LyricsEditorOptions = { audioSrc: '', lyrics: '', mode: 'tap' };
     private view: EditorView | null = null;
     private saved: ViewSnapshot | undefined;
@@ -25,7 +25,7 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
       style.textContent = ':host{display:block;min-width:0}:host([hidden]),[hidden]{display:none!important}' + editorCSS + timingCSS + timelineCSS;
       shadow.append(style);
       // Honor properties assigned before the custom element definition was loaded.
-      for (const name of ['audioSrc', 'lyrics', 'mode', 'keyboardEnabled', 'preventUnload', 'showSave', 'saveLabel'] as const) {
+      for (const name of ['audioSrc', 'lyrics', 'mode', 'keyboardEnabled', 'preventUnload', 'showSave', 'saveLabel', 'keyboardScope', 'locale'] as const) {
         if (Object.prototype.hasOwnProperty.call(this, name)) {
           const value = this[name]; delete (this as unknown as Record<string, unknown>)[name];
           (this as unknown as Record<string, unknown>)[name] = value;
@@ -52,6 +52,8 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
       if (name === 'hide-save') this.options.showSave = value === null;
       if (name === 'keyboard-disabled') this.options.keyboardEnabled = value === null;
       if (name === 'no-unload-guard') this.options.preventUnload = value === null;
+      if (name === 'keyboard-scope') this.options.keyboardScope = value === 'page' ? 'page' : 'focused';
+      if (name === 'locale') this.options.locale = value === 'en' ? 'en' : 'zh-CN';
       if (name === 'autofocus') this.options.autoFocus = value !== null;
       if (['audio-src', 'lyrics', 'mode'].includes(name)) this.reset(); else this.view?.updateOptions(this.options);
     }
@@ -78,13 +80,17 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
     set mode(value: RecordingMode) { if (value !== this.mode) { this.options.mode = value === 'hold' ? 'hold' : 'tap'; this.reset(); } }
     get keyboardEnabled() { return this.options.keyboardEnabled !== false; }
     set keyboardEnabled(value: boolean) { this.options.keyboardEnabled = Boolean(value); this.view?.updateOptions(this.options); }
+    get keyboardScope() { return this.options.keyboardScope ?? 'focused'; }
+    set keyboardScope(value: 'focused' | 'page') { this.options.keyboardScope = value; this.view?.updateOptions(this.options); }
+    get locale() { return this.options.locale ?? 'zh-CN'; }
+    set locale(value: 'zh-CN' | 'en') { this.options.locale = value; this.view?.updateOptions(this.options); }
     get preventUnload() { return this.options.preventUnload !== false; }
-    set preventUnload(value: boolean) { this.options.preventUnload = Boolean(value); }
+    set preventUnload(value: boolean) { this.options.preventUnload = Boolean(value); this.view?.updateOptions(this.options); }
     get showSave() { return this.options.showSave !== false; }
     set showSave(value: boolean) { this.options.showSave = Boolean(value); this.view?.updateOptions(this.options); }
     get saveLabel() { return this.options.saveLabel ?? '保存歌词'; }
     set saveLabel(value: string) { this.options.saveLabel = value; this.view?.updateOptions(this.options); }
-    pause() { this.view?.pause(); }
+    pause(preserveTapPhrase = false) { this.view?.pause(preserveTapPhrase); }
     requestClose() { if (this.view) this.view.requestClose(); else this.emit('lyrics-request-close', { dirty: false }); }
     getDocument() { return this.view?.getDocument() ?? (this.saved ? copyDocument(this.saved.state) : copyDocument(typeof this.options.lyrics === 'string' ? parseLyrics(this.options.lyrics) : this.options.lyrics)); }
     focus(options?: FocusOptions) { if (this.view) this.view.focus(); else super.focus(options); }

@@ -18,7 +18,7 @@ Lyricue works in plain HTML, React, Vue, or any other application that can host 
 - Shadow DOM style isolation, CSS custom properties, and typed DOM events.
 - A framework-independent `/core` entry for LRC and timing algorithms, usable in Node.js.
 
-The current UI is in Simplified Chinese. Times are represented as integer milliseconds.
+The UI supports Simplified Chinese (default) and English with `locale: 'en'`. Times are represented as integer milliseconds.
 
 ## Quick start
 
@@ -29,7 +29,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:4185`. The playground includes an original 20-second instrumental loop, or accepts your own audio and lyrics. It supports recording, refinement, and LRC download without uploading files. The editor controls are currently in Chinese.
+Open `http://127.0.0.1:4185`. The playground includes an original 20-second instrumental loop, or accepts your own audio and lyrics. It supports recording, refinement, and LRC download without uploading files. The app supports English and Chinese, with a saved language preference.
 
 To build and create an installable package:
 
@@ -104,6 +104,8 @@ The demo outputs to `demo-dist/`, separately from the library in `dist/`. Relati
 | `mode` | `mode` | `'tap'` | `'tap'` or `'hold'`; fixed during a session |
 | `saveLabel` | `save-label` | `'保存歌词'` | Save button label |
 | `showSave` | `hide-save` (inverse) | `true` | Show the save button |
+| `locale` | `locale` | `'zh-CN'` | `'zh-CN'` or `'en'`; UI only, never translates lyric content |
+| `keyboardScope` | `keyboard-scope` | `'focused'` | Opt into `'page'` for an editor app with page-wide shortcuts |
 | `keyboardEnabled` | `keyboard-disabled` (inverse) | `true` | Enable shortcuts and keyboard activation |
 | `preventUnload` | `no-unload-guard` (inverse) | `true` | Warn before leaving with unsaved edits |
 | `autoFocus` (load option) | `autofocus` | `false` | Focus the editor when a session mounts |
@@ -129,10 +131,12 @@ All events are typed `CustomEvent`s with `bubbles: true` and `composed: true`.
 Documents returned by events and `getDocument()` are detached snapshots. The host owns saving and closing; a save event does not persist data or automatically clear the dirty state.
 
 - `load(options)`: replace the session.
-- `pause()`: pause and commit an open phrase. Enter preserves the phrase in tap mode instead.
+- `pause(preserveTapPhrase = false)`: pause and commit an open phrase. Pass `true` to keep a tap phrase open for manual resume; hold mode always commits before pausing.
 - `focus()`: focus the workspace and activate its keyboard shortcuts.
 - `requestClose()`: pause and ask the host to handle closing.
 - `getDocument()`: get the current snapshot, including an in-progress phrase. It may contain untimed lines; validate before serialization.
+
+With `keyboardScope: 'page'`, shortcuts work outside the editor too. Native dialogs, editable fields and other editor instances retain their keyboard behavior. Enable page scope on only one instance at a time. Disable `keyboardEnabled` for hidden/inactive instances and while opening file pickers. Call `pause(true)` before opening an editor dialog or a file picker; re-enable keys after it closes and let the user resume manually. The default focused scope stays suitable for embedding in larger pages.
 
 ### Your own modal or drawer
 
@@ -183,7 +187,7 @@ Other frameworks can use the same properties, methods, and DOM events.
 
 ## Keyboard controls
 
-Shortcuts apply only to the focused editor. They do not intercept input elsewhere or in another instance. On-screen keycaps also support mouse input.
+By default, shortcuts apply only to the focused editor; `keyboardScope: 'page'` opts into page-wide app controls. They do not intercept input elsewhere or in another instance. On-screen keycaps also support mouse input.
 
 | Key | Rough timing | Refinement |
 | --- | --- | --- |
@@ -227,7 +231,7 @@ lyrics-editor {
 }
 ```
 
-`::part(editor)`, `::part(timeline)`, and `::part(preview)` expose outer styling surfaces. Global class selectors do not cross the shadow boundary.
+`::part(editor)`, `::part(timeline)`, `::part(preview)`, `::part(phase-label)`, and `::part(footer)` expose outer styling surfaces. Global class selectors do not cross the shadow boundary.
 
 Waveform generation fetches and decodes the whole audio file. Cross-origin servers must allow GET from the host page's origin; playback alone does not imply permission to fetch waveform data. Audio servers should support HTTP Range for accurate seeking and snippet previews. Supported formats depend on the browser. Waveform failure exposes a retry action while playback remains available.
 

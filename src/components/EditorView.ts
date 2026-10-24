@@ -5,6 +5,7 @@ import { buildAudioWaveform, type AudioWaveform } from '../lib/audio-waveform.js
 import type { LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorPhase } from '../types.js';
 import { Timeline } from './Timeline.js';
 import { PlaybackPreview } from './PlaybackPreview.js';
+import { translateUI } from './i18n.js';
 import { element, text, attr, button, keycap, icon } from './dom.js';
 
 export const copyDocument = (document: LyricDocument): LyricDocument => ({ lines: document.lines.map(line => ({ ...line })), metadata: [...document.metadata] });
@@ -60,6 +61,7 @@ export class EditorView {
   private captions: Record<string, HTMLElement> = {};
 
   constructor(private options: LyricsEditorOptions, private emit: Emit, snapshot?: ViewSnapshot) {
+    this.options = { ...options };
     this.original = snapshot?.original ?? copyDocument(typeof options.lyrics === 'string' ? parseLyrics(options.lyrics) : options.lyrics);
     this.state = snapshot?.state ?? createTimingState(copyDocument(this.original).lines, [...this.original.metadata]);
     this.mode = snapshot?.mode ?? options.mode ?? 'tap';
@@ -68,6 +70,7 @@ export class EditorView {
     this.positionMs = snapshot?.positionMs ?? 0; this.hasStarted = snapshot?.hasStarted ?? false; this.waveform = snapshot?.waveform ?? null;
     this.root.tabIndex = 0; attr(this.root, 'aria-label', '歌词打轴工作区'); attr(this.root, 'part', 'editor');
     attr(this.label, 'role', 'status'); attr(this.status, 'role', 'status'); attr(this.waveStatus, 'role', 'status'); attr(this.empty, 'role', 'status');
+    attr(this.label, 'part', 'phase-label'); attr(this.footer, 'part', 'footer');
     this.hints.id = 'lyrics-editor-help'; attr(this.root, 'aria-describedby', this.hints.id);
     this.waveStatus.append(this.waveText, this.retryWave); this.footerInfo.append(this.status, this.hints); this.footer.append(this.footerInfo, this.retry, this.playback, this.save);
     const thumb = icon('thumb'); thumb.classList.add('lyric-complete-icon');
@@ -78,12 +81,17 @@ export class EditorView {
       seek: ms => this.seek(ms), change: (lines, index) => this.dispatch({ type: 'ranges', lines, index }), pause: () => this.pause(),
       audition: index => this.auditionLine(index), boundary: (index, edge, separate, lines) => this.auditionBoundary(index, edge, separate, lines) });
     this.root.append(this.label, this.audio, this.empty, this.timeline.root, this.waveStatus, this.complete, this.preview.root, this.footer);
+    this.timeline.setLocale(this.options.locale);
     this.setupAudio(); this.setupKeyboard();
     this.render();
     queueMicrotask(() => { if (!this.destroyed) { this.publish(true); if (this.options.autoFocus) this.focus(); } });
     if (!this.waveform) void this.loadWaveform();
   }
-  updateOptions(options: LyricsEditorOptions) { this.options = options; this.render(); }
+  updateOptions(options: LyricsEditorOptions) {
+    const changedLocale = options.locale !== this.options.locale; this.options = { ...options };
+    if (changedLocale) { this.renderedPhase = null; this.timeline.setLocale(options.locale); }
+    this.render();
+  }
   private get playing() { return !this.audio.paused && !this.audio.ended; }
   private get dirty() {
     return !sameLyricRanges(this.state.lines, this.original.lines) || this.state.lines.some((line, index) => line.text !== this.original.lines[index]?.text)
@@ -91,7 +99,7 @@ export class EditorView {
   }
   getDocument() { return copyDocument({ lines: this.take ? previewLyricTake(this.take, this.audio.currentTime * 1000) : this.state.lines, metadata: this.state.metadata }); }
   focus() { this.root.focus({ preventScroll: true }); }
-  pause() { this.finishTake(); this.audio.pause(); this.updatePosition(); }
+  pause(preserveTapPhrase = false) { if (!preserveTapPhrase || this.mode === 'hold') this.finishTake(); this.audio.pause(); this.updatePosition(); }
   requestClose() { const dirty = this.dirty; this.pause(); this.emit('lyrics-request-close', { dirty: dirty || this.dirty }); }
   snapshot(): ViewSnapshot {
     this.pause();
@@ -214,18 +222,28 @@ export class EditorView {
     this.root.addEventListener('pointerdown', () => { if (!this.root.contains(this.root.getRootNode() instanceof ShadowRoot ? (this.root.getRootNode() as ShadowRoot).activeElement : document.activeElement)) this.focus(); }, { capture: true, signal });
     // Capture suppresses local keycaps and boundary commands too while the host opens a confirmation.
     this.root.addEventListener('keydown', event => { if (this.options.keyboardEnabled === false && event.key !== 'Tab') { event.preventDefault(); event.stopPropagation(); } }, { capture: true, signal });
+    this.root.addEventListener('keydown', event => {
+      if (this.options.keyboardScope !== 'page' || ![' ', 'Enter'].includes(event.key)) return;
+      this.onKeyDown(event, true); if (event.defaultPrevented) event.stopPropagation();
+    }, { capture: true, signal });
     this.root.addEventListener('keydown', event => this.onKeyDown(event), { signal });
+    document.addEventListener('keydown', event => {
+      if (this.options.keyboardScope !== 'page' || event.composedPath().includes(this.root)) return;
+      const target = event.composedPath()[0];
+      if (document.querySelector('dialog[open]') || !(target instanceof HTMLElement) || target.closest('input, textarea, select, [contenteditable]:not([contenteditable=false]), lyrics-editor')) return;
+      this.onKeyDown(event, true);
+    }, { signal });
     window.addEventListener('keyup', event => {
       if (this.options.keyboardEnabled !== false && event.key === ' ' && this.take?.mode === 'hold' && this.take.input === 'keyboard') { event.preventDefault(); this.finishTake(); }
     }, { signal });
     const blur = () => { if (this.take && !this.audio.paused) this.pause(); };
-    this.root.addEventListener('focusout', event => { if (!this.root.contains(event.relatedTarget as Node | null)) blur(); }, { signal });
+    this.root.addEventListener('focusout', event => { if (this.options.keyboardScope !== 'page' && !this.root.contains(event.relatedTarget as Node | null)) blur(); }, { signal });
     window.addEventListener('blur', blur, { signal }); document.addEventListener('visibilitychange', () => { if (document.hidden) blur(); }, { signal });
     window.addEventListener('beforeunload', event => { if (this.options.preventUnload !== false && this.dirty) { event.preventDefault(); event.returnValue = ''; } }, { signal });
   }
-  private onKeyDown(event: KeyboardEvent) {
+  private onKeyDown(event: KeyboardEvent, fromPage = false) {
     if (this.options.keyboardEnabled === false || event.isComposing || event.defaultPrevented) return;
-    const target = event.target as HTMLElement;
+    const target = fromPage ? this.root : event.target as HTMLElement;
     if (event.key === 'Escape') { event.preventDefault(); if (!this.cancelTake()) this.requestClose(); return; }
     if (this.phase === 'complete' || target.closest('input, textarea, select, [contenteditable=true]')) return;
     if (this.timeline.handleZoom(event)) return;
@@ -303,6 +321,9 @@ export class EditorView {
     const playbackLabel = this.playing ? '暂停' : '播放'; if (this.playback.getAttribute('aria-label') !== playbackLabel) { attr(this.playback, 'aria-label', playbackLabel); this.playback.replaceChildren(icon(this.playing ? 'pause' : 'play'), document.createTextNode(playbackLabel)); }
     this.save.hidden = !refine || this.options.showSave === false; text(this.save, this.options.saveLabel ?? '保存歌词'); this.save.disabled = disabled || !lines.length || issues.size > 0 || Boolean(this.take);
     attr(this.root, 'aria-describedby', complete ? null : this.hints.id);
+    this.root.dataset.phase = this.phase;
+    translateUI(this.root, this.options.locale);
+    this.root.lang = this.options.locale ?? 'zh-CN';
   }
   destroy() {
     this.destroyed = true; this.listeners.abort(); this.waveformAbort?.abort(); this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load();

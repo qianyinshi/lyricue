@@ -240,3 +240,14 @@ npm run verify:package
 `verify:package` 检查、运行 65 项算法测试、构建、打包，并在工作区外的**无框架项目**安装真实 `.tgz`，校验无 runtime／peer dependencies、公开文件清单、Node 安全导入、纯算法 round trip 和严格 NodeNext 类型消费。命令输出临时项目与打包文件路径。
 
 发布前确认 npm 包名可用性、账号权限和版本，并移除 `private: true`。完成打包及独立使用验证后再执行 `npm publish --access public`，首版建议使用 `0.1.0` 或 `next` 预发布 tag。
+
+
+## 单屏应用与中英文界面
+
+`locale` 属性／选项（HTML 同名）支持 `'zh-CN'`（默认）与 `'en'`，只切换组件界面，保留歌词原文。
+
+`keyboardScope` 属性／选项（HTML 为 `keyboard-scope`）默认 `'focused'`，只在组件获得焦点时响应。单屏工具可设置为 `'page'`，使页面其他位置也响应快捷键；文本输入、原生 dialog 和其他编辑器保留自身键盘操作。同一页面仅启用一个实例的全局快捷键，对隐藏／未激活实例设置 `keyboardEnabled = false`。
+
+打开编辑弹窗或文件选择器前调用 `pause(true)`，点按模式会保留正在打轴的句子，长按模式会提交当前句。默认 `pause()` 行为不变。交互期间禁用 `keyboardEnabled`，结束后恢复快捷键，由用户手动继续播放。
+
+可通过 `::part(phase-label)` 与 `::part(footer)` 调整提示和底部区域；原有 `editor`、`timeline`、`preview` part 继续可用。

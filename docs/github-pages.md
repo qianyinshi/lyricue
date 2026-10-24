@@ -1,6 +1,6 @@
 # GitHub Pages playground
 
-The public demo is served at https://qianyinshi.github.io/lyricue/. It uses the actual built component, with an original synthesized instrumental and sample lyrics. It can also load local audio and plain or LRC lyrics, record timing, refine boundaries, and download or copy LRC. No visitor audio or lyrics are uploaded. The current component controls are in Chinese.
+The public demo is served at https://qianyinshi.github.io/lyricue/. It uses the actual built component, with an original synthesized instrumental and sample lyrics. It can also load local audio and plain or LRC lyrics, record timing, refine boundaries, and download LRC. No visitor audio or lyrics are uploaded. The single-screen app supports English and Chinese, remembered in local storage. The header Integrate button opens a native dialog with installation and usage. Lyrics are previewed in the sidebar and edited or uploaded through native dialogs. Quick timing and refinement preserve separate demo sessions. Only the active editor receives page-wide shortcuts; dialogs and file pickers pause playback without auto-resuming.
 
 ## Local preview
 
@@ -20,7 +20,7 @@ The demo source is `examples/standalone/`. `base: './'` makes its JS and CSS wor
 
 If organization policy blocks automatic initialization, a repository administrator can open **Settings → Pages** and set **Source** to **GitHub Actions**, then rerun the workflow.
 
-The workflow runs package checks, 65 logic tests, a real tarball consumption check, and the demo build before uploading the Pages artifact. The build job has `pages: write` for initialization, and only the deployment job has `id-token: write`; it does not publish npm packages. Ordinary pull requests build the demo through CI without deploying.
+The workflow runs package checks, logic tests, a real tarball consumption check, and the demo build before uploading the Pages artifact. The build job has `pages: write` for initialization, and only the deployment job has `id-token: write`; it does not publish npm packages. Ordinary pull requests build the demo through CI without deploying.
 
 If `actions/configure-pages` reports that Pages cannot be found, first confirm that Pages is enabled with the GitHub Actions source. Do not change repository visibility, add tokens to code, or replace Pages with another hosting service as a workaround.
 

@@ -1,6 +1,7 @@
 import { formatLyricTime, lyricBoundaryEditMode, lyricBoundaryLimits, lyricEndMs, resizeLyricBoundary, sameLyricRanges, type LyricEdge, type LyricLine } from '../lib/lyric-timing.js';
 import type { AudioWaveform } from '../lib/audio-waveform.js';
 import { formatLyricMarkerTime, type LyricMarker } from '../lib/lyric-markers.js';
+import { translate } from './i18n.js';
 import { element, attr, text } from './dom.js';
 
 export interface TimelineData {
@@ -36,6 +37,8 @@ export class Timeline {
   private markerNodes = new Map<number, HTMLDivElement>();
   private data: TimelineData | null = null;
   private scale = 80;
+  private locale: 'zh-CN' | 'en' = 'zh-CN';
+  setLocale(locale: 'zh-CN' | 'en' = 'zh-CN') { this.locale = locale; this.paintKey = ''; this.render(); }
   private drag: Drag | null = null;
   private dragFrame = 0;
   private observer: ResizeObserver;
@@ -127,11 +130,12 @@ export class Timeline {
         node.style.left = left + 'px'; node.style.width = width + 'px';
         attr(node, 'title', d.readonly ? null : line.text + '\n' + formatLyricTime(line.timeMs) + ' → ' + formatLyricTime(end));
         const label = node.querySelector<HTMLButtonElement>('.lyric-clip-text')!; text(label, line.text); label.disabled = d.readonly;
-        attr(label, 'aria-label', '选中歌词片段 ' + (index + 1) + '：' + line.text); attr(label, 'aria-pressed', index === d.selected);
+        attr(label, 'aria-label', (this.locale === 'en' ? 'Select lyric ' : '选中歌词片段 ') + (index + 1) + ': ' + line.text); attr(label, 'aria-pressed', index === d.selected);
         for (const edge of ['start', 'end'] as const) {
           let handle = node.querySelector<HTMLButtonElement>('.is-' + edge);
           if (d.readonly) { handle?.remove(); continue; }
           if (!handle) { handle = this.makeEdge(index, edge); node.append(handle); }
+          attr(handle, 'aria-label', this.locale === 'en' ? 'Line ' + (index + 1) + ' ' + edge + ' boundary' : '第 ' + (index + 1) + ' 行' + (edge === 'start' ? '开始' : '结束') + '边界');
           const limits = lyricBoundaryLimits(lines, index, edge, d.durationMs);
           const separate = this.hovered?.index === index && this.hovered.edge === edge ? this.hovered.separate : !limits.shared;
           this.setEdgeMode(handle, separate);
@@ -144,7 +148,7 @@ export class Timeline {
       const pending = lines[pendingIndex]; this.pending.hidden = !pending || !(selected?.timeMs === null || !selected?.text);
       if (!this.pending.hidden) {
         text(this.pending, pending.text); this.pending.dataset.pendingIndex = String(pendingIndex);
-        attr(this.pending, 'aria-label', '待打轴：' + pending.text); attr(this.pending, 'aria-live', 'polite');
+        attr(this.pending, 'aria-label', (this.locale === 'en' ? 'Next line: ' : '待打轴：') + pending.text); attr(this.pending, 'aria-live', 'polite');
         this.pending.style.left = Math.max(this.viewport.scrollLeft + 12, Math.min(d.positionMs / 1000 * this.pps + 12, this.viewport.scrollLeft + this.viewport.clientWidth - 120)) + 'px';
       }
       const markerIDs = new Set(d.markers.map(marker => marker.id));
@@ -154,7 +158,7 @@ export class Timeline {
         if (!node) { node = element('div', 'lyric-timeline-marker'); node.append(element('span')); this.markerNodes.set(marker.id, node); this.content.append(node); }
         node.dataset.markerId = String(marker.id); node.dataset.timeMs = String(marker.timeMs);
         node.classList.toggle('is-current', marker.id === d.currentMarkerID); node.classList.toggle('is-near-end', this.width - marker.timeMs / 1000 * this.pps < 70);
-        attr(node, 'aria-label', '标记 ' + formatLyricMarkerTime(marker.timeMs)); text(node.firstElementChild as HTMLElement, formatLyricMarkerTime(marker.timeMs));
+        attr(node, 'aria-label', (this.locale === 'en' ? 'Marker ' : '标记 ') + formatLyricMarkerTime(marker.timeMs)); text(node.firstElementChild as HTMLElement, formatLyricMarkerTime(marker.timeMs));
         node.style.left = Math.min(this.width - 1, marker.timeMs / 1000 * this.pps) + 'px';
       }
     } finally { this.rendering = false; }
@@ -165,11 +169,11 @@ export class Timeline {
   }
   private setEdgeMode(node: HTMLElement, separate: boolean) {
     node.dataset.editMode = separate ? 'single' : 'shared'; node.style.cursor = separate ? 'ew-resize' : 'col-resize';
-    attr(node, 'title', separate ? '单侧编辑：只调整本句' : '双侧编辑：同时调整相邻两句');
+    attr(node, 'title', translate(separate ? '单侧编辑：只调整本句' : '双侧编辑：同时调整相邻两句', this.locale));
   }
   private makeEdge(index: number, edge: LyricEdge) {
     const handle = element('button', 'lyric-clip-edge is-' + edge); handle.type = 'button'; handle.append(element('i'));
-    attr(handle, 'role', 'slider'); attr(handle, 'aria-label', '第 ' + (index + 1) + ' 行' + (edge === 'start' ? '开始' : '结束') + '边界'); attr(handle, 'aria-orientation', 'horizontal');
+    attr(handle, 'role', 'slider'); attr(handle, 'aria-label', this.locale === 'en' ? 'Line ' + (index + 1) + ' ' + edge + ' boundary' : '第 ' + (index + 1) + ' 行' + (edge === 'start' ? '开始' : '结束') + '边界'); attr(handle, 'aria-orientation', 'horizontal');
     const hover = (event: PointerEvent) => {
       if (this.drag || !this.data || this.data.readonly) return;
       const separate = this.pointerMode(event.clientX, index, edge, event.pointerType === 'touch') === 'single';
@@ -243,7 +247,7 @@ export class Timeline {
     this.paintKey = key; this.paintedWave = d.waveform;
     const ctx = this.canvas.getContext('2d'); if (!ctx || !width) return;
     this.canvas.width = Math.round(width * ratio); this.canvas.height = HEIGHT * ratio; this.canvas.style.width = width + 'px'; this.canvas.style.height = HEIGHT + 'px'; ctx.scale(ratio, ratio);
-    attr(this.canvas, 'aria-label', d.waveform ? '真实音频波形' : '音频波形待加载');
+    attr(this.canvas, 'aria-label', translate(d.waveform ? '真实音频波形' : '音频波形待加载', this.locale));
     ctx.fillStyle = '#f6f6f4'; ctx.fillRect(0, 0, width, RULER); ctx.fillStyle = '#f8faf8'; ctx.fillRect(0, RULER, width, WAVE_HEIGHT); ctx.fillStyle = '#fcfcfb'; ctx.fillRect(0, RULER + WAVE_HEIGHT, width, HEIGHT); ctx.font = '11px ui-monospace, SFMono-Regular, monospace';
     const fromMs = left / pps * 1000, toMs = Math.min(d.durationMs, (left + width) / pps * 1000);
     for (let time = Math.floor(fromMs / step) * step; time <= toMs; time += step) {
