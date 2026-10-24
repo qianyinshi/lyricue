@@ -13,7 +13,7 @@
 }
 .lyrics-editor, .lyrics-editor * { box-sizing: border-box; }
 .lyrics-editor button { font-family: inherit; }
-.lyrics-editor:focus-visible { outline: 2px solid var(--lyrics-brand); outline-offset: 3px; }
+.lyrics-editor:focus-visible { outline: none; }
 .lyrics-editor .lyric-editor-button {
   display: inline-flex; justify-content: center; align-items: center; gap: 6px;
   min-height: 32px; padding: 5px 12px; border: 1px solid transparent; border-radius: 4px;

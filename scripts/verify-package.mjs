@@ -62,5 +62,5 @@ editor.pause(); const snapshot: LyricDocument = editor.getDocument(); console.lo
 writeFileSync(join(folder, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext', lib: ['ES2022','DOM'], strict: true, skipLibCheck: false, noEmit: true, noUncheckedSideEffectImports: true }, include: ['types.ts'] }));
 run(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', join(folder, 'tsconfig.json')], folder);
 mkdirSync(join(folder, 'example'));
-for (const file of ['index.html', 'main.ts', 'demo-audio.ts', 'page.css']) copyFileSync(join(root, 'examples/standalone', file), join(folder, 'example', file));
+for (const file of ['index.html', 'main.ts', 'demo-audio.ts', 'mode-illustration.ts', 'page.css']) copyFileSync(join(root, 'examples/standalone', file), join(folder, 'example', file));
 console.log(JSON.stringify({ folder, tarball: join(folder, packed.filename), size: packed.size, unpackedSize: packed.unpackedSize, files: packed.files.length, checks: ['pack allowlist', 'zero runtime and peer dependencies', 'tarball install outside workspace', 'no DOM needed to import UI', 'core round trip', 'no application imports', 'NodeNext consumer types'] }, null, 2));

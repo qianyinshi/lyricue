@@ -1,5 +1,6 @@
 import { defineLyricsEditor, type LyricsEditorElement, type LyricsEditorPhase, type LyricDocument } from 'lyricue';
 import { prepareRecordingLyrics, serializeLyrics, stripSunoMarkers } from 'lyricue/core';
+import { renderModeIllustration } from './mode-illustration';
 import { createDemoAudio } from './demo-audio';
 import './page.css';
 
@@ -10,7 +11,10 @@ const strings = {
   rough: ['快速粗打', 'Quick timing'], refine: ['精调时间轴', 'Fine-tune timeline'], audio: ['你的音频', 'Your audio'],
   uploadAudio: ['上传新音频', 'Upload new audio'], demo: ['使用示例音频', 'Use demo audio'], demoName: ['示例音乐.wav', 'Demo instrumental.wav'],
   lyrics: ['歌词', 'Lyrics'], edit: ['编辑歌词', 'Edit lyrics'], upload: ['上传', 'Upload'], mode: ['打轴方式', 'Recording mode'],
-  tap: ['点按空格', 'Tap Space'], hold: ['长按空格', 'Hold Space'], suno: ['自动去除 Suno 段落标记', 'Remove Suno section tags'],
+  tap: ['点按模式', 'Tap mode'], hold: ['长按模式', 'Hold mode'],
+  chooseMode: ['选择你喜欢的打轴方式', 'Choose your timing mode'], recommended: ['推荐', 'Recommended'], applyMode: ['应用方式', 'Apply mode'],
+  tapDescription: ['点一下空格，进入下一句。句与句连续衔接，自动去除所有空行。', 'Tap Space to advance to the next line. Lines connect continuously; empty lines are removed.'],
+  holdDescription: ['按住空格开始一句，松开结束。句与句之间可以留白，自动去除所有空行。', 'Hold Space to start a line, release to end it. Leave gaps between lines; empty lines are removed.'], suno: ['自动去除 Suno 段落标记', 'Remove Suno section tags'],
   cancel: ['取消', 'Cancel'], apply: ['应用歌词', 'Apply lyrics'], close: ['关闭', 'Close'], usage: ['使用方法', 'Using Lyricue'],
   install: ['安装', 'Install'], use: ['使用', 'Use'], installNote: ['npm 版本即将发布，目前可以从源码构建并安装。', 'The npm release is coming soon. For now, build and pack from source.'],
   copy: ['复制代码', 'Copy code'], copied: ['已复制', 'Copied'], copyFailed: ['无法访问剪贴板，请手动选择代码复制。', 'Clipboard unavailable. Select the code to copy it.'],
@@ -31,7 +35,7 @@ const t = (key: Message) => strings[key][locale === 'zh-CN' ? 0 : 1];
 const editors = { rough: $<LyricsEditorElement>('#rough-editor'), refine: $<LyricsEditorElement>('#refine-editor') };
 const source = $<HTMLTextAreaElement>('#source'), stripTags = $<HTMLInputElement>('#strip-tags');
 const audioInput = $<HTMLInputElement>('#audio'), lyricsInput = $<HTMLInputElement>('#lyrics-file');
-const mode = $<HTMLSelectElement>('#mode');
+let recordingMode: 'tap' | 'hold' = 'tap';
 const timedSample = '[00:01.000]Let the morning find you\n[00:04.500]\n[00:05.000]With a little room to breathe\n[00:08.500]\n[00:09.000]Every word can have its moment\n[00:12.500]\n[00:13.000]Every note can find its place\n[00:16.500]\n[00:17.000]We can bring it all together\n[00:19.500]';
 let lyrics = timedSample;
 let activeStage: Stage = 'rough';
@@ -52,13 +56,13 @@ function showMessage(key: Message | null) { messageKey = key; $('#message').hidd
 function closeDialog(dialog: HTMLDialogElement, value = '') { dialog.close(value); syncKeyboard(); }
 function showDialog(dialog: HTMLDialogElement) { pause(); dialog.showModal(); syncKeyboard(); }
 for (const dialog of dialogs) {
-  dialog.addEventListener('close', syncKeyboard);
+  dialog.addEventListener('close', () => { syncKeyboard(); if (dialog.id === 'mode-dialog' && !dialog.open) for (const node of dialog.querySelectorAll('.mode-illustration')) node.replaceChildren(); });
   dialog.addEventListener('cancel', event => { event.preventDefault(); closeDialog(dialog); });
   for (const button of dialog.querySelectorAll<HTMLButtonElement>('[data-close]')) button.addEventListener('click', () => closeDialog(dialog));
   dialog.addEventListener('click', event => { if (event.target === dialog) { const bounds = dialog.getBoundingClientRect(); if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeDialog(dialog); } });
 }
-function confirmReplacement(): Promise<boolean> {
-  if (!dirty.rough && !dirty.refine) return Promise.resolve(true);
+function confirmReplacement(scope?: Stage): Promise<boolean> {
+  if (scope ? !dirty[scope] : !dirty.rough && !dirty.refine) return Promise.resolve(true);
   const dialog = $<HTMLDialogElement>('#confirm-dialog');
   return new Promise(resolve => {
     dialog.returnValue = 'cancel';
@@ -83,6 +87,8 @@ function renderLocale() {
   $('#lang-zh').setAttribute('aria-pressed', String(locale === 'zh-CN')); $('#lang-en').setAttribute('aria-pressed', String(locale === 'en'));
   $('#audio-name').textContent = audioFile?.name ?? t('demoName');
   for (const editor of Object.values(editors)) { editor.locale = locale; editor.saveLabel = t('export'); }
+  $('#mode-name').textContent = t(recordingMode);
+  refreshModeIllustrations();
   showMessage(messageKey);
 }
 function switchLanguage() {
@@ -99,7 +105,7 @@ function refineDocument(document: LyricDocument): LyricDocument {
   return { ...document, lines: document.lines.map((line, index) => ({ ...line, timeMs: Math.round(index * slot), endMs: Math.round((index + 1) * slot) })) };
 }
 function load(stage: Stage, document: LyricDocument) {
-  editors[stage].load({ audioSrc: audioURL, lyrics: document, mode: mode.value === 'hold' ? 'hold' : 'tap', keyboardScope: 'page', locale, autoFocus: false, saveLabel: t('export'), keyboardEnabled: stage === activeStage && !dialogs.some(dialog => dialog.open) });
+  editors[stage].load({ audioSrc: audioURL, lyrics: document, mode: recordingMode, keyboardScope: 'page', locale, autoFocus: false, saveLabel: t('export'), keyboardEnabled: stage === activeStage && !dialogs.some(dialog => dialog.open) });
   dirty[stage] = false;
   phases[stage] = document.lines.every(line => line.timeMs !== null) ? 'refine' : 'rough';
 }
@@ -190,9 +196,26 @@ lyricsInput.addEventListener('change', () => {
 $('#use-demo').addEventListener('click', () => {
   pause(); void (async () => { if (!await confirmReplacement()) return; const previousURL = audioURL; audioURL = URL.createObjectURL(createDemoAudio()); audioFile = null; durationMs = 20000; loadBoth(); URL.revokeObjectURL(previousURL); })();
 });
-let previousMode = mode.value;
-mode.addEventListener('change', () => {
-  pause(); void (async () => { if (!await confirmReplacement()) { mode.value = previousMode; return; } previousMode = mode.value; load('rough', plainDocument(prepared())); refreshTabs(); syncKeyboard(); })();
+function refreshModeIllustrations() {
+  if (!$<HTMLDialogElement>('#mode-dialog').open) return;
+  for (const node of document.querySelectorAll<HTMLElement>('.mode-illustration')) renderModeIllustration(node, node.dataset.mode === 'hold' ? 'hold' : 'tap', locale);
+}
+window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', refreshModeIllustrations);
+$('#mode').addEventListener('click', () => {
+  $<HTMLInputElement>('#mode-dialog input[value="' + recordingMode + '"]').checked = true;
+  showDialog($<HTMLDialogElement>('#mode-dialog')); refreshModeIllustrations();
+});
+$<HTMLFormElement>('#mode-form').addEventListener('submit', event => {
+  event.preventDefault();
+  void (async () => {
+    const next = $<HTMLInputElement>('#mode-dialog input:checked').value === 'hold' ? 'hold' : 'tap';
+    if (next !== recordingMode) {
+      if (!await confirmReplacement('rough')) return;
+      recordingMode = next; load('rough', plainDocument(prepared()));
+      $('#mode-name').textContent = t(recordingMode); refreshTabs();
+    }
+    closeDialog($<HTMLDialogElement>('#mode-dialog'));
+  })();
 });
 for (const stage of ['rough', 'refine'] as const) {
   editors[stage].addEventListener('lyrics-dirty-change', event => { dirty[stage] = event.detail.dirty; });

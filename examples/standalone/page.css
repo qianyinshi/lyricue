@@ -21,37 +21,38 @@ nav a:hover,.nav-button:hover,.text-button:hover { color:var(--accent); }
 .language-switch button+button { border-left:1px solid var(--accent); }
 .language-switch [aria-pressed=true] { background:var(--accent); color:white; }
 .language-switch button:focus-visible { outline-offset:-3px; }
-main { flex:1; min-height:0; display:flex; flex-direction:column; padding-bottom:24px; }
-.intro { padding:26px 0 20px; display:flex; flex-direction:column; align-items:center; gap:18px; flex-shrink:0; }
+main { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:safe center; overflow-y:auto; padding-block:24px; }
+.intro { padding:0 0 24px; display:flex; flex-direction:column; align-items:center; gap:18px; flex-shrink:0; }
 h1 { margin:0; font-size:clamp(18px,2.2vw,27px); font-weight:550; letter-spacing:-.035em; text-align:center; }
 .stage-tabs { display:inline-flex; padding:3px; gap:4px; border:1px solid var(--line); border-radius:7px; }
 .stage-tabs button { min-height:35px; padding:6px 22px; border:0; border-radius:4px; background:transparent; color:var(--muted); font-size:13px; font-weight:550; }
 .stage-tabs [aria-selected=true] { background:var(--accent); color:white; }
-.workbench { flex:1; min-height:0; display:grid; grid-template-columns:250px minmax(0,1fr); border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--surface); }
-.setup { min-height:0; min-width:0; padding:24px; display:flex; flex-direction:column; gap:26px; border-right:1px solid var(--line); background:var(--soft); }
+.workbench { flex:none; min-height:0; display:grid; grid-template-columns:250px minmax(0,1fr); border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--surface); }
+.setup { min-height:0; min-width:0; padding:22px; display:flex; flex-direction:column; gap:24px; border-right:1px solid var(--line); background:var(--soft); }
 .field { display:flex; flex-direction:column; gap:10px; min-height:0; min-width:0; }
 h2 { margin:0; font-size:15px; font-weight:650; }
 .file-name { margin:0 0 2px; color:var(--muted); font-size:12px; overflow-wrap:anywhere; }
-.lyrics-field { flex:1; }
-.lyrics-preview { flex:1; min-height:40px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; line-height:2; scrollbar-width:thin; }
-.field-actions { display:flex; gap:8px; flex-shrink:0; }
+.lyrics-field { flex:none; }
+.lyrics-preview { max-height:156px; min-height:40px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; line-height:2; scrollbar-width:thin; }
+.field-actions { display:flex; gap:18px; flex-shrink:0; }
 .secondary-button,.primary-button { display:inline-flex; justify-content:center; align-items:center; min-height:35px; padding:6px 13px; border:1px solid var(--line); border-radius:5px; background:var(--surface); color:var(--ink); font-size:12px; font-weight:550; white-space:nowrap; }
 .secondary-button:hover { border-color:var(--muted); }
 .primary-button { background:var(--accent); color:white; border-color:var(--accent); }
 .primary-button:hover { background:var(--accent-active); }
 .text-button { border:0; padding:0; background:transparent; color:var(--muted); font-size:12px; text-align:left; }
-.mode-field { flex-shrink:0; }
-.mode-field label { font-size:12px; font-weight:600; }
+.mode-field { flex-shrink:0; margin-top:auto; }
+.mode-field .link-button { align-self:flex-start; }
 select,textarea { width:100%; border:1px solid var(--line); border-radius:5px; background:var(--surface); color:var(--ink); }
 select { min-height:35px; padding:5px 8px; font-size:12px; }
-.editor-panel { display:flex; min-height:0; min-width:0; background:#fff; }
-.editor-mount { display:flex; flex:1; min-height:0; min-width:0; padding:22px 24px 0; }
+.editor-panel { display:flex; align-items:center; min-height:0; min-width:0; background:#fff; }
+.editor-mount { display:flex; align-items:center; flex:1; min-height:0; min-width:0; padding:22px 24px 0; }
 lyrics-editor { flex:1; min-width:0; min-height:0; --lyrics-editor-accent:#a4312d; --lyrics-editor-accent-active:#842321; }
-lyrics-editor::part(editor) { height:100%; display:flex; flex-direction:column; min-height:0; }
-lyrics-editor::part(phase-label) { display:none; }
+lyrics-editor::part(editor) { outline:none; }
+lyrics-editor:focus, lyrics-editor:focus-visible { outline:none; }
+lyrics-editor::part(phase-label) { margin-bottom:14px; line-height:1.8; }
 lyrics-editor::part(timeline) { flex-shrink:0; }
-lyrics-editor::part(preview) { flex:1; min-height:64px; height:auto; margin-top:16px; }
-lyrics-editor::part(footer) { flex-shrink:0; margin-top:auto; }
+lyrics-editor::part(preview) { height:164px; margin-top:16px; padding-block:58px; }
+lyrics-editor::part(footer) { margin-top:0; }
 .app-message { flex-shrink:0; margin:8px 0 -12px; color:var(--accent); font-size:12px; }
 dialog { width:min(640px,calc(100% - 32px)); max-height:calc(100dvh - 48px); overflow:auto; padding:26px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); box-shadow:0 24px 90px #0003; }
 dialog::backdrop { background:#15181366; }
@@ -75,27 +76,55 @@ pre { padding:15px; margin:0; overflow:auto; border:1px solid var(--line); borde
 #confirm-dialog p { font-size:14px; color:var(--muted); }
 .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 @media (max-width:1000px) { .site-header,main { width:calc(100% - 32px); } .workbench { grid-template-columns:210px minmax(0,1fr); } .setup { padding:18px; gap:20px; } .editor-mount { padding:16px 16px 0; } }
-@media (max-height:740px) and (min-width:761px) { .site-header { height:58px; } .intro { padding:14px 0; gap:12px; } main { padding-bottom:16px; } .editor-mount { padding-top:14px; } }
+@media (max-height:740px) and (min-width:761px) { .site-header { height:58px; } .intro { padding:14px 0; gap:12px; } main { padding-block:16px; } .editor-mount { padding-top:14px; } }
 @media (max-width:760px) {
  .site-header { height:58px; } .wordmark { font-size:25px; } nav { gap:15px; font-size:12px; } .language-switch button { width:29px; height:28px; }
- main { padding-bottom:12px; } .intro { padding:14px 0; gap:12px; } h1 { font-size:18px; } .stage-tabs button { min-height:32px; padding:5px 18px; font-size:12px; }
- .workbench { grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); } .setup { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px 16px; padding:12px; border-right:0; border-bottom:1px solid var(--line); }
+ main { padding-block:12px; } .intro { padding:14px 0; gap:12px; } h1 { font-size:18px; } .stage-tabs button { min-height:32px; padding:5px 18px; font-size:12px; }
+ .workbench { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; } .setup { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px 16px; padding:12px; border-right:0; border-bottom:1px solid var(--line); }
  .field { gap:6px; } .field h2 { font-size:12px; } .file-name { font-size:10px; max-height:30px; overflow:auto; } .lyrics-preview { max-height:40px; min-height:0; font-size:11px; line-height:1.7; }
- .secondary-button { min-height:29px; padding:4px 8px; font-size:10px; } .field-actions { gap:6px; } .mode-field { grid-column:1 / -1; flex-direction:row; align-items:center; } .mode-field select { width:auto; min-height:28px; font-size:11px; } .mode-field label { font-size:11px; }
+ .secondary-button { min-height:29px; padding:4px 8px; font-size:10px; } .field-actions { gap:6px; } .mode-field { grid-column:1 / -1; flex-direction:row; align-items:center; } .mode-field h2 { font-size:11px; }
  .editor-mount { padding:12px 10px 0; } lyrics-editor::part(preview) { margin-top:8px; } dialog { padding:20px; }
 }
-@media (max-width:760px) and (max-height:700px) { .intro { padding:9px 0; gap:8px; } .setup { max-height:120px; overflow:auto; } .editor-panel { overflow-y:auto; } lyrics-editor::part(editor) { min-height:350px; } }
+@media (max-width:760px) and (max-height:700px) { .intro { padding:7px 0; gap:8px; } .setup { max-height:120px; overflow:auto; } .editor-panel { overflow-y:auto; } lyrics-editor::part(editor) { min-height:0; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; } }
 @media (max-width:760px) {
- lyrics-editor::part(preview) { padding-block:24px; }
+ lyrics-editor::part(preview) { height:104px; padding-block:28px; }
 }
 @media (max-width:760px) and (max-height:760px) {
+ main { padding-block:8px; }
+ lyrics-editor::part(phase-label) { margin-bottom:10px; }
  .site-header { height:52px; }
- .intro { padding:9px 0; gap:8px; }
+ .intro { padding:7px 0; gap:8px; }
  h1 { font-size:16px; line-height:1.4; }
- .setup { padding:8px 10px; gap:6px 12px; }
+ .setup { padding:6px 10px; gap:6px 12px; }
  .lyrics-preview { max-height:26px; }
  .field { gap:4px; }
  .editor-mount { padding-top:8px; }
- lyrics-editor::part(preview) { min-height:40px; padding-block:12px; margin-top:4px; }
+ lyrics-editor::part(preview) { height:64px; padding-block:8px; margin-top:4px; }
 }
+
+.link-button { align-self:flex-start; display:inline-flex; align-items:center; min-height:28px; padding:0; border:0; border-radius:2px; background:none; color:var(--accent); font-size:12px; font-weight:550; text-align:left; }
+.link-button:hover { color:var(--accent-active); text-decoration:underline; text-underline-offset:3px; }
+#mode-dialog { width:min(760px,calc(100% - 32px)); }
+.mode-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.mode-option { display:flex; flex-direction:column; position:relative; min-width:0; padding:20px; border:1px solid var(--line); border-radius:10px; cursor:pointer; }
+.mode-option:has(input:checked) { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.mode-option:has(input:focus-visible) { outline:2px solid var(--accent); outline-offset:3px; }
+.mode-option input { position:absolute; width:1px; height:1px; clip-path:inset(50%); margin:0; overflow:hidden; }
+.mode-title { display:flex; align-items:center; gap:8px; font-size:18px; font-weight:600; }
+.mode-title em { border-radius:4px; padding:2px 5px; background:#f6e2df; color:var(--accent); font-size:10px; font-style:normal; }
+.mode-description { display:block; margin-top:12px; color:var(--muted); font-size:13px; line-height:1.8; }
+.mode-illustration { display:block; margin-top:8px; }
+.timing-illustration { display:block; width:100%; height:auto; color:var(--ink); overflow:visible; }
+.demo-hand { animation:demo-tap-hand 8s ease-in-out infinite; }
+.demo-key { animation:demo-tap-key 8s ease-in-out infinite; }
+.is-hold .demo-hand { animation-name:demo-hold-hand; }
+.is-hold .demo-key { animation-name:demo-hold-key; }
+#mode-dialog:not([open]) :is(.demo-hand,.demo-key) { animation-play-state:paused; }
+@keyframes demo-tap-hand { 0%,6%,18%,26%,38%,46%,58%,66%,78%,100% { transform:translateY(0); } 10%,30%,50%,70% { transform:translateY(12px); } }
+@keyframes demo-tap-key { 0%,9%,15%,29%,35%,49%,55%,69%,75%,100% { transform:translateY(0); } 10%,30%,50%,70% { transform:translateY(2px); } }
+@keyframes demo-hold-hand { 0%,7%,27%,31%,51%,55%,75%,79%,94%,100% { transform:translateY(0); } 10%,24%,34%,48%,58%,72%,82%,90% { transform:translateY(12px); } }
+@keyframes demo-hold-key { 0%,9%,25%,33%,49%,57%,73%,81%,91%,100% { transform:translateY(0); } 10%,24%,34%,48%,58%,72%,82%,90% { transform:translateY(2px); } }
+@media (max-width:760px) { .link-button { min-height:26px; font-size:11px; } .mode-field { margin-top:0; } }
+@media (max-width:560px) { .mode-options { grid-template-columns:minmax(0,1fr); gap:12px; } .mode-option { padding:16px; } .timing-illustration { max-height:136px; } .mode-description { margin-top:6px; } }
+@media (prefers-reduced-motion:reduce) { .demo-hand,.demo-key { animation:none; } }
