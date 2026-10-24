@@ -112,12 +112,10 @@ pre { padding:15px; margin:0; overflow:auto; border:1px solid var(--line); borde
 .link-button:hover { color:var(--accent-active); text-decoration:underline; text-underline-offset:3px; }
 #mode-dialog { width:min(760px,calc(100% - 32px)); }
 .mode-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
-.mode-option { display:flex; flex-direction:column; position:relative; min-width:0; padding:20px; border:1px solid var(--line); border-radius:10px; cursor:pointer; }
-.mode-option:has(input:checked) { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
-.mode-option:has(input:focus-visible) { outline:2px solid var(--accent); outline-offset:3px; }
-.mode-option input { position:absolute; width:1px; height:1px; clip-path:inset(50%); margin:0; overflow:hidden; }
+.mode-option { display:flex; flex-direction:column; position:relative; min-width:0; padding:20px; border:1px solid var(--line); border-radius:10px; background:none; color:inherit; text-align:left; cursor:pointer; }
+.mode-option[aria-pressed="true"] { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.mode-option:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
 .mode-title { display:flex; align-items:center; gap:8px; font-size:18px; font-weight:600; }
-.mode-title em { border-radius:4px; padding:2px 5px; background:#f6e2df; color:var(--accent); font-size:10px; font-style:normal; }
 .mode-description { display:block; margin-top:12px; color:var(--muted); font-size:13px; line-height:1.8; }
 .mode-illustration { display:block; margin-top:8px; }
 .timing-illustration { display:block; width:100%; height:auto; color:var(--ink); overflow:visible; }
@@ -153,7 +151,6 @@ pre { padding:15px; margin:0; overflow:auto; border:1px solid var(--line); borde
 .integration-examples summary::marker { color:var(--accent); }
 .integration-body { padding:0 14px 14px; }
 .integration-body pre { max-height:360px; }
-.export-filename { margin:0 0 12px; color:var(--muted); font:12px/1.5 ui-monospace,'SFMono-Regular',monospace; overflow-wrap:anywhere; }
 #export-content { display:block; height:min(360px,45dvh); resize:vertical; padding:14px; font:12px/1.9 ui-monospace,'SFMono-Regular',monospace; background:var(--soft); }
 @media (max-width:1000px) and (min-width:761px) { .audio-card { flex-direction:column; align-items:flex-start; gap:9px; } }
 @media (max-width:760px) { .audio-card { gap:8px; padding:8px; } .audio-art { flex-basis:32px; width:32px; height:32px; } .audio-disc { width:24px; height:24px; } .audio-bars { display:none; } .audio-card .file-name { font-size:10px; } .audio-meta { margin-top:3px; font-size:9px; } .integration-body { padding:0 10px 10px; } }

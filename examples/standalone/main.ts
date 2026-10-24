@@ -13,7 +13,7 @@ const strings = {
   demo: ['使用示例音频', 'Use demo audio'], demoName: ['示例音乐.wav', 'Demo instrumental.wav'],
   lyrics: ['待打轴歌词', 'Lyrics to time'], edit: ['编辑', 'Edit'], editLyrics: ['编辑歌词', 'Edit lyrics'], upload: ['上传', 'Upload'], mode: ['打轴方式', 'Recording mode'],
   tap: ['点按模式', 'Tap mode'], hold: ['长按模式', 'Hold mode'],
-  chooseMode: ['选择你喜欢的打轴方式', 'Choose your timing mode'], recommended: ['推荐', 'Recommended'], applyMode: ['应用方式', 'Apply mode'],
+  chooseMode: ['选择你喜欢的打轴方式', 'Choose your timing mode'],
   tapDescription: ['点一下空格，进入下一句。句与句连续衔接，自动去除所有空行。', 'Tap Space to advance to the next line. Lines connect continuously; empty lines are removed.'],
   holdDescription: ['按住空格开始一句，松开结束。句与句之间可以留白，自动去除所有空行。', 'Hold Space to start a line, release to end it. Leave gaps between lines; empty lines are removed.'], suno: ['自动去除 Suno 段落标记', 'Remove Suno section tags'],
   cancel: ['取消', 'Cancel'], apply: ['应用歌词', 'Apply lyrics'], close: ['关闭', 'Close'], usage: ['使用方法', 'Using Lyricue'],
@@ -23,7 +23,7 @@ const strings = {
   empty: ['请至少输入一句歌词。', 'Add at least one line of lyrics.'], audioSize: ['请选择小于 100 MB 的音频。', 'Choose audio smaller than 100 MB.'],
   audioInvalid: ['无法读取该音频，请选择浏览器支持的音频格式。', 'Cannot read this audio. Choose a format supported by your browser.'],
   textSize: ['歌词文件不能超过 1 MB。', 'Lyrics files must be smaller than 1 MB.'], textFailed: ['无法读取歌词文件，请重试。', 'Cannot read the lyrics file. Try again.'],
-  export: ['导出 LRC', 'Export LRC'], download: ['保存下载', 'Download LRC'], lrcLyrics: ['LRC 格式歌词', 'LRC lyrics'], integrate: ['集成', 'Integrate'],
+  export: ['导出 LRC', 'Export LRC'], download: ['下载', 'Download'], lrcLyrics: ['LRC 格式歌词', 'LRC lyrics'], integrate: ['集成', 'Integrate'],
   htmlNote: ['将包内整个 dist 文件夹复制到 HTML 文件旁的 vendor/lyricue/ 目录，然后通过 HTTP 服务打开页面。', 'Copy the entire package dist folder to vendor/lyricue/ beside this HTML file, then serve it over HTTP.'],
 } satisfies Record<string, [string, string]>;
 type Message = keyof typeof strings;
@@ -214,28 +214,31 @@ function refreshModeIllustrations() {
 }
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', refreshModeIllustrations);
 $('#mode').addEventListener('click', () => {
-  $<HTMLInputElement>('#mode-dialog input[value="' + recordingMode + '"]').checked = true;
+  for (const card of document.querySelectorAll<HTMLButtonElement>('[data-recording-mode]')) card.setAttribute('aria-pressed', String(card.dataset.recordingMode === recordingMode));
   showDialog($<HTMLDialogElement>('#mode-dialog')); refreshModeIllustrations();
 });
-$<HTMLFormElement>('#mode-form').addEventListener('submit', event => {
-  event.preventDefault();
-  void (async () => {
-    const next = $<HTMLInputElement>('#mode-dialog input:checked').value === 'hold' ? 'hold' : 'tap';
+let changingMode = false;
+async function applyRecordingMode(next: 'tap' | 'hold') {
+  if (changingMode) return;
+  changingMode = true;
+  try {
     if (next !== recordingMode) {
       if (!await confirmReplacement('rough')) return;
       recordingMode = next; load('rough', plainDocument(prepared()));
       $('#mode-name').textContent = t(recordingMode); refreshTabs();
     }
     closeDialog($<HTMLDialogElement>('#mode-dialog'));
-  })();
-});
+  } finally { changingMode = false; }
+}
+for (const card of document.querySelectorAll<HTMLButtonElement>('[data-recording-mode]')) {
+  card.addEventListener('click', () => void applyRecordingMode(card.dataset.recordingMode === 'hold' ? 'hold' : 'tap'));
+}
 for (const stage of ['rough', 'refine'] as const) {
   editors[stage].addEventListener('lyrics-dirty-change', event => { dirty[stage] = event.detail.dirty; });
   editors[stage].addEventListener('lyrics-phase-change', event => { phases[stage] = event.detail.phase; if (stage === activeStage) refreshTabs(); });
   editors[stage].addEventListener('lyrics-save', event => {
-    pendingExport = { lyrics: event.detail.lyrics, filename: (audioFile?.name.replace(/\.[^.]+$/, '') || 'lyricue-demo') + '.lrc' };
+    pendingExport = { lyrics: event.detail.lyrics, filename: (audioFile?.name ?? t('demoName')).replace(/\.[^.]+$/, '') + '.lrc' };
     $<HTMLTextAreaElement>('#export-content').value = pendingExport.lyrics;
-    $('#export-filename').textContent = pendingExport.filename;
     showDialog($<HTMLDialogElement>('#export-dialog'));
   });
 }
