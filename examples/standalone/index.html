@@ -12,7 +12,7 @@
 <header class="site-header">
   <a class="wordmark" href="./" aria-label="Lyricue home">lyricue<span aria-hidden="true">/</span></a>
   <nav aria-label="Main navigation">
-    <button class="nav-button" id="usage" type="button">Integrate</button>
+    <button class="nav-button" id="usage" type="button" data-i18n="integrate">Integrate</button>
     <a href="https://github.com/qianyinshi/lyricue" target="_blank" rel="noopener noreferrer">GitHub</a>
     <div class="language-switch" role="group" aria-label="Language"><button type="button" id="lang-zh" lang="zh-CN" aria-label="中文" aria-pressed="false">中</button><button type="button" id="lang-en" lang="en" aria-label="English" aria-pressed="true">EN</button></div>
   </nav>
@@ -24,40 +24,31 @@
   </section>
   <section id="playground" class="workbench" role="tabpanel" aria-labelledby="tab-rough">
     <aside class="setup">
-      <section class="field audio-field"><h2 data-i18n="audio">Audio</h2><p id="audio-name" class="file-name preview-card"></p><button class="link-button" id="upload-audio" type="button" data-i18n="upload">Upload</button><input id="audio" type="file" accept="audio/*,video/mp4" hidden /><button class="link-button" id="use-demo" type="button" hidden data-i18n="demo">Use demo audio</button></section>
-      <section class="field lyrics-field"><h2 data-i18n="lyrics">Lyrics</h2><div id="lyrics-preview" class="lyrics-preview preview-card"></div><div class="field-actions"><button class="link-button" id="edit-lyrics" type="button" data-i18n="edit">Edit</button><button class="link-button" id="upload-lyrics" type="button" data-i18n="upload">Upload</button><input id="lyrics-file" type="file" accept=".lrc,.txt,text/plain" hidden /></div></section>
+      <section class="field audio-field"><h2 data-i18n="audio">Audio</h2><div class="audio-card"><div class="audio-art" aria-hidden="true"><span class="audio-disc"></span><span class="audio-bars"><i></i><i></i><i></i><i></i><i></i></span></div><div class="audio-details"><p id="audio-name" class="file-name"></p><p id="audio-meta" class="audio-meta"></p></div></div><div class="field-actions audio-actions"><button class="link-button" id="upload-audio" type="button" data-i18n="upload">Upload</button><input id="audio" type="file" accept="audio/*,video/mp4" hidden /><button class="link-button" id="use-demo" type="button" hidden data-i18n="demo">Use demo audio</button></div></section>
+      <section class="field lyrics-field"><h2 data-i18n="lyrics">Lyrics to time</h2><div id="lyrics-preview" class="lyrics-preview"></div><div class="field-actions"><button class="link-button" id="edit-lyrics" type="button" data-i18n="edit">Edit</button><button class="link-button" id="upload-lyrics" type="button" data-i18n="upload">Upload</button><input id="lyrics-file" type="file" accept=".lrc,.txt,text/plain" hidden /></div></section>
       <section class="field mode-field" id="mode-field"><h2 data-i18n="mode">Recording mode</h2><p class="mode-name" id="mode-name">Tap mode</p><button class="link-button" id="mode" type="button" aria-haspopup="dialog" aria-controls="mode-dialog" data-i18n="edit">Edit</button></section>
     </aside>
     <div class="editor-panel"><div class="editor-mount"><lyrics-editor id="rough-editor"></lyrics-editor><lyrics-editor id="refine-editor" hidden></lyrics-editor><noscript>Enable JavaScript to use the editor.</noscript></div></div>
   </section>
   <p id="message" class="app-message" role="status" hidden></p>
 </main>
-<dialog id="mode-dialog" aria-labelledby="mode-title"><form id="mode-form"><div class="dialog-heading"><h2 id="mode-title" data-i18n="chooseMode">Choose your timing mode</h2><button class="close-button" type="button" data-close aria-label="Close" data-i18n-aria="close">×</button></div><div class="mode-options" role="radiogroup" aria-labelledby="mode-title">
+<dialog id="mode-dialog" aria-labelledby="mode-title"><form id="mode-form"><div class="dialog-heading"><h2 id="mode-title" data-i18n="chooseMode">Choose your timing mode</h2><button class="close-button" type="button" data-close aria-label="Close" data-i18n-aria="close"></button></div><div class="mode-options" role="radiogroup" aria-labelledby="mode-title">
 <label class="mode-option"><input type="radio" name="recording-mode" value="tap" checked /><span class="mode-title"><span data-i18n="tap">Tap mode</span><em data-i18n="recommended">Recommended</em></span><span class="mode-illustration" data-mode="tap" aria-hidden="true"></span><span class="mode-description" data-i18n="tapDescription">Tap Space to advance to the next line. Lines connect continuously; empty lines are removed.</span></label>
 <label class="mode-option"><input type="radio" name="recording-mode" value="hold" /><span class="mode-title" data-i18n="hold">Hold mode</span><span class="mode-illustration" data-mode="hold" aria-hidden="true"></span><span class="mode-description" data-i18n="holdDescription">Hold Space to start a line, release to end it. Leave gaps between lines; empty lines are removed.</span></label>
 </div><div class="dialog-actions"><button class="secondary-button" type="button" data-close data-i18n="cancel">Cancel</button><button class="primary-button" type="submit" data-i18n="applyMode">Apply mode</button></div></form></dialog>
-<dialog id="lyrics-dialog" aria-labelledby="lyrics-dialog-title"><form id="lyrics-form"><div class="dialog-heading"><h2 id="lyrics-dialog-title" data-i18n="editLyrics">Edit lyrics</h2><button class="close-button" type="button" data-close aria-label="Close" data-i18n-aria="close">×</button></div><label class="visually-hidden" for="source" data-i18n="lyrics">Lyrics</label><textarea id="source" spellcheck="false"></textarea><label class="checkbox-label" id="suno-field" hidden><input id="strip-tags" type="checkbox" checked /><span data-i18n="suno">Remove Suno section tags</span></label><p class="form-message" id="form-message" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close data-i18n="cancel">Cancel</button><button class="primary-button" type="submit" data-i18n="apply">Apply lyrics</button></div></form></dialog>
-<dialog id="usage-dialog" aria-labelledby="usage-title"><div class="dialog-heading"><h2 id="usage-title" data-i18n="usage">Using Lyricue</h2><button type="button" class="close-button" data-close aria-label="Close" data-i18n-aria="close">×</button></div><ol class="usage-steps"><li><h3 data-i18n="install">Install</h3><p data-i18n="installNote">The npm release is coming soon. For now, build and pack from source.</p><pre tabindex="0"><code>git clone https://github.com/qianyinshi/lyricue.git
+<dialog id="lyrics-dialog" aria-labelledby="lyrics-dialog-title"><form id="lyrics-form"><div class="dialog-heading"><h2 id="lyrics-dialog-title" data-i18n="editLyrics">Edit lyrics</h2><button class="close-button" type="button" data-close aria-label="Close" data-i18n-aria="close"></button></div><label class="visually-hidden" for="source" data-i18n="lyrics">Lyrics</label><textarea id="source" spellcheck="false"></textarea><label class="checkbox-label" id="suno-field" hidden><input id="strip-tags" type="checkbox" checked /><span data-i18n="suno">Remove Suno section tags</span></label><p class="form-message" id="form-message" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close data-i18n="cancel">Cancel</button><button class="primary-button" type="submit" data-i18n="apply">Apply lyrics</button></div></form></dialog>
+<dialog id="usage-dialog" aria-labelledby="usage-title"><div class="dialog-heading"><h2 id="usage-title" data-i18n="usage">Using Lyricue</h2><button type="button" class="close-button" data-close aria-label="Close" data-i18n-aria="close"></button></div><ol class="usage-steps"><li><h3 data-i18n="install">Install</h3><p data-i18n="installNote">The npm release is coming soon. For now, build and pack from source.</p><pre tabindex="0"><code>git clone https://github.com/qianyinshi/lyricue.git
 cd lyricue
 npm ci
 npm run build
 npm pack
 # In your project:
-npm install /path/to/lyricue/lyricue-0.1.0.tgz</code></pre></li><li><h3 data-i18n="use">Use</h3><div class="code-heading"><span>JavaScript</span><button class="text-button" id="copy-code" type="button" data-i18n="copy">Copy code</button></div><pre tabindex="0"><code id="usage-code">import { defineLyricsEditor } from 'lyricue';
-
-defineLyricsEditor();
-const editor = document.createElement('lyrics-editor');
-editor.load({
-  audioSrc: '/song.mp3',
-  lyrics: 'First line\nSecond line',
-  mode: 'tap',
-  locale: 'en',
-  keyboardScope: 'page',
-});
-editor.addEventListener('lyrics-save', ({ detail }) =&gt; {
-  console.log(detail.lyrics);
-});
-document.querySelector('#app').append(editor);</code></pre></li></ol><a class="documentation-link" href="https://github.com/qianyinshi/lyricue#readme" target="_blank" rel="noopener noreferrer" data-i18n="docs">Full documentation</a><p id="copy-status" class="visually-hidden" role="status"></p></dialog>
+npm install /path/to/lyricue/lyricue-0.1.0.tgz</code></pre></li><li><h3 data-i18n="use">Use</h3><div class="integration-examples">
+<details open><summary>HTML</summary><div class="integration-body"><p data-i18n="htmlNote">Copy the entire package dist folder to vendor/lyricue/ beside this HTML file, then serve it over HTTP.</p><div class="code-heading"><span>index.html</span><button class="text-button" type="button" data-copy="html-code" data-i18n="copy">Copy code</button></div><pre tabindex="0"><code id="html-code"></code></pre></div></details>
+<details><summary>React</summary><div class="integration-body"><div class="code-heading"><span>App.jsx</span><button class="text-button" type="button" data-copy="react-code" data-i18n="copy">Copy code</button></div><pre tabindex="0"><code id="react-code"></code></pre></div></details>
+<details><summary>Vue</summary><div class="integration-body"><div class="code-heading"><span>App.vue</span><button class="text-button" type="button" data-copy="vue-code" data-i18n="copy">Copy code</button></div><pre tabindex="0"><code id="vue-code"></code></pre></div></details>
+</div></li></ol><a class="documentation-link" href="https://github.com/qianyinshi/lyricue#readme" target="_blank" rel="noopener noreferrer" data-i18n="docs">Full documentation</a><p id="copy-status" class="visually-hidden" role="status"></p></dialog>
+<dialog id="export-dialog" aria-labelledby="export-title"><div class="dialog-heading"><h2 id="export-title" data-i18n="export">Export LRC</h2><button type="button" class="close-button" data-close aria-label="Close" data-i18n-aria="close"></button></div><p id="export-filename" class="export-filename"></p><label class="visually-hidden" for="export-content" data-i18n="lrcLyrics">LRC lyrics</label><textarea id="export-content" readonly spellcheck="false"></textarea><div class="dialog-actions"><button class="primary-button" id="download-lrc" type="button" data-i18n="download">Download LRC</button></div></dialog>
 <dialog id="confirm-dialog" aria-labelledby="confirm-title"><div class="dialog-heading"><h2 id="confirm-title" data-i18n="replaceTitle">Replace this session?</h2></div><p data-i18n="replaceNote">Your current timing and markers will be reset.</p><div class="dialog-actions"><button id="confirm-no" class="secondary-button" type="button" data-i18n="cancel">Cancel</button><button id="confirm-yes" class="primary-button" type="button" data-i18n="replace">Replace</button></div></dialog>
 <script type="module" src="/main.ts"></script>
 </body>

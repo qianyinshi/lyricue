@@ -1,5 +1,6 @@
 import { defineLyricsEditor, type LyricsEditorElement, type LyricsEditorPhase, type LyricDocument } from 'lyricue';
 import { prepareRecordingLyrics, serializeLyrics, stripSunoMarkers } from 'lyricue/core';
+import { integrationExamples } from './integration-examples';
 import { renderModeIllustration } from './mode-illustration';
 import { createDemoAudio } from './demo-audio';
 import './page.css';
@@ -10,7 +11,7 @@ const strings = {
   intro: ['超好用的零依赖歌词打轴工具', 'A delightfully simple, zero-dependency lyrics timing tool.'],
   rough: ['快速粗打', 'Quick timing'], refine: ['精调时间轴', 'Fine-tune timeline'], audio: ['音频', 'Audio'],
   demo: ['使用示例音频', 'Use demo audio'], demoName: ['示例音乐.wav', 'Demo instrumental.wav'],
-  lyrics: ['歌词', 'Lyrics'], edit: ['编辑', 'Edit'], editLyrics: ['编辑歌词', 'Edit lyrics'], upload: ['上传', 'Upload'], mode: ['打轴方式', 'Recording mode'],
+  lyrics: ['待打轴歌词', 'Lyrics to time'], edit: ['编辑', 'Edit'], editLyrics: ['编辑歌词', 'Edit lyrics'], upload: ['上传', 'Upload'], mode: ['打轴方式', 'Recording mode'],
   tap: ['点按模式', 'Tap mode'], hold: ['长按模式', 'Hold mode'],
   chooseMode: ['选择你喜欢的打轴方式', 'Choose your timing mode'], recommended: ['推荐', 'Recommended'], applyMode: ['应用方式', 'Apply mode'],
   tapDescription: ['点一下空格，进入下一句。句与句连续衔接，自动去除所有空行。', 'Tap Space to advance to the next line. Lines connect continuously; empty lines are removed.'],
@@ -22,7 +23,8 @@ const strings = {
   empty: ['请至少输入一句歌词。', 'Add at least one line of lyrics.'], audioSize: ['请选择小于 100 MB 的音频。', 'Choose audio smaller than 100 MB.'],
   audioInvalid: ['无法读取该音频，请选择浏览器支持的音频格式。', 'Cannot read this audio. Choose a format supported by your browser.'],
   textSize: ['歌词文件不能超过 1 MB。', 'Lyrics files must be smaller than 1 MB.'], textFailed: ['无法读取歌词文件，请重试。', 'Cannot read the lyrics file. Try again.'],
-  export: ['导出 LRC', 'Export LRC'], downloaded: ['已下载 LRC', 'LRC downloaded'], integrate: ['Integrate', 'Integrate'],
+  export: ['导出 LRC', 'Export LRC'], download: ['保存下载', 'Download LRC'], lrcLyrics: ['LRC 格式歌词', 'LRC lyrics'], integrate: ['集成', 'Integrate'],
+  htmlNote: ['将包内整个 dist 文件夹复制到 HTML 文件旁的 vendor/lyricue/ 目录，然后通过 HTTP 服务打开页面。', 'Copy the entire package dist folder to vendor/lyricue/ beside this HTML file, then serve it over HTTP.'],
 } satisfies Record<string, [string, string]>;
 type Message = keyof typeof strings;
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
@@ -43,6 +45,8 @@ const phases: Record<Stage, LyricsEditorPhase> = { rough: 'rough', refine: 'refi
 const dirty: Record<Stage, boolean> = { rough: false, refine: false };
 let audioFile: File | null = null, audioURL = URL.createObjectURL(createDemoAudio()), durationMs = 20000;
 let pickerOpen = false, messageKey: Message | null = null;
+let pendingExport: { lyrics: string; filename: string } | null = null;
+for (const [stack, code] of Object.entries(integrationExamples)) $('#' + stack + '-code').textContent = code;
 const active = () => editors[activeStage];
 const dialogs = [...document.querySelectorAll<HTMLDialogElement>('dialog')];
 const currentPhase = () => phases[activeStage];
@@ -80,12 +84,20 @@ function refreshTabs() {
   $('#playground').setAttribute('aria-labelledby', 'tab-' + stage);
   $('#mode-field').hidden = stage !== 'rough';
 }
+function renderAudioCard() {
+  $('#audio-name').textContent = audioFile?.name ?? t('demoName');
+  const seconds = Math.round(durationMs / 1000);
+  const clock = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+  const format = audioFile?.name.split('.').pop()?.toUpperCase() || 'WAV';
+  const size = audioFile ? ' · ' + (audioFile.size / 1024 / 1024).toFixed(1) + ' MB' : '';
+  $('#audio-meta').textContent = format + ' · ' + clock + size;
+}
 function renderLocale() {
   document.documentElement.lang = locale;
   for (const node of document.querySelectorAll<HTMLElement>('[data-i18n]')) node.textContent = t(node.dataset.i18n as Message);
   for (const node of document.querySelectorAll<HTMLElement>('[data-i18n-aria]')) node.setAttribute('aria-label', t(node.dataset.i18nAria as Message));
   $('#lang-zh').setAttribute('aria-pressed', String(locale === 'zh-CN')); $('#lang-en').setAttribute('aria-pressed', String(locale === 'en'));
-  $('#audio-name').textContent = audioFile?.name ?? t('demoName');
+  renderAudioCard();
   for (const editor of Object.values(editors)) { editor.locale = locale; editor.saveLabel = t('export'); }
   $('#mode-name').textContent = t(recordingMode);
   refreshModeIllustrations();
@@ -112,7 +124,7 @@ function load(stage: Stage, document: LyricDocument) {
 function loadBoth() {
   const document = prepared(); load('rough', plainDocument(document)); load('refine', refineDocument(document));
   $('#lyrics-preview').textContent = document.lines.map(line => line.text).join('\n');
-  $('#audio-name').textContent = audioFile?.name ?? t('demoName');
+  renderAudioCard();
   $('#use-demo').hidden = !audioFile; showMessage(null); refreshTabs(); syncKeyboard();
 }
 async function switchStage(stage: Stage) {
@@ -221,12 +233,26 @@ for (const stage of ['rough', 'refine'] as const) {
   editors[stage].addEventListener('lyrics-dirty-change', event => { dirty[stage] = event.detail.dirty; });
   editors[stage].addEventListener('lyrics-phase-change', event => { phases[stage] = event.detail.phase; if (stage === activeStage) refreshTabs(); });
   editors[stage].addEventListener('lyrics-save', event => {
-    const filename = (audioFile?.name.replace(/\.[^.]+$/, '') || 'lyricue-demo') + '.lrc';
-    const url = URL.createObjectURL(new Blob([event.detail.lyrics], { type: 'text/plain;charset=utf-8' }));
-    const link = document.createElement('a'); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000); showMessage('downloaded');
+    pendingExport = { lyrics: event.detail.lyrics, filename: (audioFile?.name.replace(/\.[^.]+$/, '') || 'lyricue-demo') + '.lrc' };
+    $<HTMLTextAreaElement>('#export-content').value = pendingExport.lyrics;
+    $('#export-filename').textContent = pendingExport.filename;
+    showDialog($<HTMLDialogElement>('#export-dialog'));
   });
 }
-$('#copy-code').addEventListener('click', () => { void (async () => { try { await navigator.clipboard.writeText($('#usage-code').textContent ?? ''); $('#copy-status').textContent = t('copied'); $('#copy-code').textContent = t('copied'); setTimeout(() => { $('#copy-code').textContent = t('copy'); }, 1600); } catch { $('#copy-status').textContent = t('copyFailed'); } })(); });
+$('#download-lrc').addEventListener('click', () => {
+  if (!pendingExport) return;
+  const url = URL.createObjectURL(new Blob([pendingExport.lyrics], { type: 'text/plain;charset=utf-8' }));
+  const link = document.createElement('a'); link.href = url; link.download = pendingExport.filename; document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+  button.addEventListener('click', () => { void (async () => {
+    try {
+      await navigator.clipboard.writeText($('#' + button.dataset.copy).textContent ?? '');
+      $('#copy-status').textContent = t('copied'); button.textContent = t('copied');
+      setTimeout(() => { button.textContent = t('copy'); }, 1600);
+    } catch { $('#copy-status').textContent = t('copyFailed'); }
+  })(); });
+}
 window.addEventListener('pagehide', event => { pause(); if (!event.persisted) URL.revokeObjectURL(audioURL); });
 defineLyricsEditor(); renderLocale(); loadBoth();
