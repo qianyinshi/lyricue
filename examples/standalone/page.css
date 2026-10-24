@@ -22,8 +22,8 @@ nav a:hover,.nav-button:hover,.text-button:hover { color:var(--accent); }
 .language-switch [aria-pressed=true] { background:var(--accent); color:white; }
 .language-switch button:focus-visible { outline-offset:-3px; }
 main { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:safe center; overflow-y:auto; padding-block:24px; }
-.intro { padding:0 0 24px; display:flex; flex-direction:column; align-items:center; gap:18px; flex-shrink:0; }
-h1 { margin:0; font-size:clamp(18px,2.2vw,27px); font-weight:550; letter-spacing:-.035em; text-align:center; }
+.intro { padding:0 0 40px; display:flex; flex-direction:column; align-items:center; gap:18px; flex-shrink:0; }
+h1 { margin:0; font-size:clamp(22px,2.6vw,36px); line-height:1.35; font-weight:550; letter-spacing:-.035em; text-align:center; }
 .stage-tabs { display:inline-flex; padding:3px; gap:4px; border:1px solid var(--line); border-radius:7px; }
 .stage-tabs button { min-height:35px; padding:6px 22px; border:0; border-radius:4px; background:transparent; color:var(--muted); font-size:13px; font-weight:550; }
 .stage-tabs [aria-selected=true] { background:var(--accent); color:white; }
@@ -78,16 +78,16 @@ pre { padding:15px; margin:0; overflow:auto; border:1px solid var(--line); borde
 #confirm-dialog p { font-size:14px; color:var(--muted); }
 .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 @media (max-width:1000px) { .site-header,main { width:calc(100% - 32px); } .workbench { grid-template-columns:210px minmax(0,1fr); } .setup { padding:18px; gap:20px; } .editor-mount { padding:16px 16px 0; } }
-@media (max-height:740px) and (min-width:761px) { .site-header { height:58px; } .intro { padding:14px 0; gap:12px; } main { padding-block:16px; } .editor-mount { padding-top:14px; } }
+@media (max-height:740px) and (min-width:761px) { .site-header { height:58px; } .intro { padding:14px 0 32px; gap:12px; } main { padding-block:16px; } .editor-mount { padding-top:14px; } }
 @media (max-width:760px) {
  .site-header { height:58px; } .wordmark { font-size:25px; } nav { gap:15px; font-size:12px; } .language-switch button { width:29px; height:28px; }
- main { padding-block:12px; } .intro { padding:14px 0; gap:12px; } h1 { font-size:18px; } .stage-tabs button { min-height:32px; padding:5px 18px; font-size:12px; }
+ main { padding-block:12px; } .intro { padding:14px 0 26px; gap:12px; } h1 { font-size:22px; line-height:1.3; } .stage-tabs button { min-height:32px; padding:5px 18px; font-size:12px; }
  .workbench { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; } .setup { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px 16px; padding:12px; border-right:0; border-bottom:1px solid var(--line); }
  .field { gap:6px; } .field h2 { font-size:12px; } .file-name { font-size:10px; max-height:48px; overflow:auto; } .lyrics-preview { max-height:72px; min-height:48px; font-size:11px; line-height:1.7; }
  .secondary-button { min-height:29px; padding:4px 8px; font-size:10px; } .field-actions { gap:16px; } .mode-field { grid-column:1; grid-row:2; align-items:flex-start; gap:2px; } .lyrics-field { grid-column:2; grid-row:1 / span 2; } .mode-field h2 { font-size:11px; }
  .editor-mount { padding:12px 10px 0; } lyrics-editor::part(preview) { margin-top:8px; } dialog { padding:20px; }
 }
-@media (max-width:760px) and (max-height:700px) { .intro { padding:7px 0; gap:8px; } .setup { max-height:120px; overflow:auto; } .editor-panel { overflow-y:auto; } lyrics-editor::part(editor) { min-height:0; } }
+@media (max-width:760px) and (max-height:700px) { .intro { padding:7px 0 19px; gap:8px; } .setup { max-height:120px; overflow:auto; } .editor-panel { overflow-y:auto; } lyrics-editor::part(editor) { min-height:0; } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; } }
 @media (max-width:760px) {
  lyrics-editor::part(preview) { height:104px; padding-block:28px; }
@@ -96,13 +96,13 @@ pre { padding:15px; margin:0; overflow:auto; border:1px solid var(--line); borde
  main { padding-block:8px; }
  lyrics-editor::part(phase-label) { display:none; }
  .site-header { height:52px; }
- .intro { padding:7px 0; gap:8px; }
- h1 { font-size:16px; line-height:1.4; }
+ .intro { padding:7px 0 19px; gap:8px; }
+ h1 { font-size:20px; line-height:1.3; }
  .setup { padding:6px 10px; gap:6px 12px; }
  .lyrics-preview { max-height:56px; }
  .field { gap:4px; }
  .editor-mount { padding-top:8px; }
- lyrics-editor::part(preview) { height:64px; padding-block:8px; margin-top:4px; }
+ lyrics-editor::part(preview) { height:48px; padding-block:0; margin-top:4px; }
 }
 
 .link-button { align-self:flex-start; display:inline-flex; align-items:center; min-height:28px; padding:0; border:0; border-radius:2px; background:none; color:var(--accent); font-size:12px; font-weight:550; text-align:left; }
