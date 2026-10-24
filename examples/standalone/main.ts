@@ -2,7 +2,7 @@ import { defineLyricsEditor, type LyricsEditorElement, type LyricsEditorPhase, t
 import { prepareRecordingLyrics, serializeLyrics, stripSunoMarkers } from 'lyricue/core';
 import { integrationExamples } from './integration-examples';
 import { renderModeIllustration } from './mode-illustration';
-import { createDemoAudio } from './demo-audio';
+import { demoMedia } from './demo-audio';
 import './page.css';
 
 type Locale = 'zh-CN' | 'en';
@@ -10,7 +10,7 @@ type Stage = 'rough' | 'refine';
 const strings = {
   intro: ['超好用的零依赖歌词打轴工具', 'A delightfully simple, zero-dependency lyrics timing tool.'],
   rough: ['快速粗打', 'Quick timing'], refine: ['精调时间轴', 'Fine-tune timeline'], audio: ['音频', 'Audio'],
-  demo: ['使用示例音频', 'Use demo audio'], demoName: ['示例音乐.wav', 'Demo instrumental.wav'],
+  demo: ['使用示例音频', 'Use demo audio'],
   lyrics: ['待打轴歌词', 'Lyrics to time'], edit: ['编辑', 'Edit'], editLyrics: ['编辑歌词', 'Edit lyrics'], upload: ['上传', 'Upload'], mode: ['打轴方式', 'Recording mode'],
   tap: ['点按模式', 'Tap mode'], hold: ['长按模式', 'Hold mode'],
   chooseMode: ['选择你喜欢的打轴方式', 'Choose your timing mode'],
@@ -38,12 +38,11 @@ const editors = { rough: $<LyricsEditorElement>('#rough-editor'), refine: $<Lyri
 const source = $<HTMLTextAreaElement>('#source'), stripTags = $<HTMLInputElement>('#strip-tags');
 const audioInput = $<HTMLInputElement>('#audio'), lyricsInput = $<HTMLInputElement>('#lyrics-file');
 let recordingMode: 'tap' | 'hold' = 'tap';
-const timedSample = '[00:01.000]Let the morning find you\n[00:04.500]\n[00:05.000]With a little room to breathe\n[00:08.500]\n[00:09.000]Every word can have its moment\n[00:12.500]\n[00:13.000]Every note can find its place\n[00:16.500]\n[00:17.000]We can bring it all together\n[00:19.500]';
-let lyrics = timedSample;
+let lyrics = demoMedia.lyrics;
 let activeStage: Stage = 'rough';
 const phases: Record<Stage, LyricsEditorPhase> = { rough: 'rough', refine: 'refine' };
 const dirty: Record<Stage, boolean> = { rough: false, refine: false };
-let audioFile: File | null = null, audioURL = URL.createObjectURL(createDemoAudio()), durationMs = 20000;
+let audioFile: File | null = null, audioURL = demoMedia.audioURL, durationMs = demoMedia.durationMs;
 let pickerOpen = false, messageKey: Message | null = null;
 let pendingExport: { lyrics: string; filename: string } | null = null;
 for (const [stack, code] of Object.entries(integrationExamples)) $('#' + stack + '-code').textContent = code;
@@ -56,6 +55,7 @@ function syncKeyboard() {
   for (const stage of ['rough', 'refine'] as const) editors[stage].keyboardEnabled = !blocked && stage === activeStage;
 }
 function pause() { active().pause(true); }
+function releaseAudioURL(url: string) { if (url.startsWith('blob:')) URL.revokeObjectURL(url); }
 function showMessage(key: Message | null) { messageKey = key; $('#message').hidden = !key; $('#message').textContent = key ? t(key) : ''; }
 function closeDialog(dialog: HTMLDialogElement, value = '') { dialog.close(value); syncKeyboard(); }
 function showDialog(dialog: HTMLDialogElement) { pause(); dialog.showModal(); syncKeyboard(); }
@@ -85,10 +85,10 @@ function refreshTabs() {
   $('#mode-field').hidden = stage !== 'rough';
 }
 function renderAudioCard() {
-  $('#audio-name').textContent = audioFile?.name ?? t('demoName');
+  $('#audio-name').textContent = audioFile?.name ?? demoMedia.filename;
   const seconds = Math.round(durationMs / 1000);
   const clock = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
-  const format = audioFile?.name.split('.').pop()?.toUpperCase() || 'WAV';
+  const format = (audioFile?.name ?? demoMedia.filename).split('.').pop()?.toUpperCase() ?? '';
   const size = audioFile ? ' · ' + (audioFile.size / 1024 / 1024).toFixed(1) + ' MB' : '';
   $('#audio-meta').textContent = format + ' · ' + clock + size;
 }
@@ -189,7 +189,7 @@ audioInput.addEventListener('change', () => {
       try {
         const duration = await readDuration(nextURL);
         if (!await confirmReplacement()) { URL.revokeObjectURL(nextURL); return; }
-        const previousURL = audioURL; audioURL = nextURL; audioFile = file; durationMs = duration; loadBoth(); URL.revokeObjectURL(previousURL);
+        const previousURL = audioURL; audioURL = nextURL; audioFile = file; durationMs = duration; loadBoth(); releaseAudioURL(previousURL);
       } catch { URL.revokeObjectURL(nextURL); showMessage('audioInvalid'); }
     } finally { pickerOpen = false; syncKeyboard(); }
   })();
@@ -206,7 +206,7 @@ lyricsInput.addEventListener('change', () => {
   })();
 });
 $('#use-demo').addEventListener('click', () => {
-  pause(); void (async () => { if (!await confirmReplacement()) return; const previousURL = audioURL; audioURL = URL.createObjectURL(createDemoAudio()); audioFile = null; durationMs = 20000; loadBoth(); URL.revokeObjectURL(previousURL); })();
+  pause(); void (async () => { if (!await confirmReplacement()) return; const previousURL = audioURL; audioURL = demoMedia.audioURL; audioFile = null; durationMs = demoMedia.durationMs; loadBoth(); releaseAudioURL(previousURL); })();
 });
 function refreshModeIllustrations() {
   if (!$<HTMLDialogElement>('#mode-dialog').open) return;
@@ -238,7 +238,7 @@ for (const stage of ['rough', 'refine'] as const) {
   editors[stage].addEventListener('lyrics-dirty-change', event => { dirty[stage] = event.detail.dirty; });
   editors[stage].addEventListener('lyrics-phase-change', event => { phases[stage] = event.detail.phase; if (stage === activeStage) refreshTabs(); });
   editors[stage].addEventListener('lyrics-save', event => {
-    pendingExport = { lyrics: event.detail.lyrics, filename: (audioFile?.name ?? t('demoName')).replace(/\.[^.]+$/, '') + '.lrc' };
+    pendingExport = { lyrics: event.detail.lyrics, filename: (audioFile?.name ?? demoMedia.filename).replace(/\.[^.]+$/, '') + '.lrc' };
     $<HTMLTextAreaElement>('#export-content').value = pendingExport.lyrics;
     showDialog($<HTMLDialogElement>('#export-dialog'));
   });
@@ -258,5 +258,5 @@ for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')
     } catch { $('#copy-status').textContent = t('copyFailed'); }
   })(); });
 }
-window.addEventListener('pagehide', event => { pause(); if (!event.persisted) URL.revokeObjectURL(audioURL); });
+window.addEventListener('pagehide', event => { pause(); if (!event.persisted) releaseAudioURL(audioURL); });
 defineLyricsEditor(); renderLocale(); loadBoth();

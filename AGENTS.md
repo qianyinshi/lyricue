@@ -8,7 +8,7 @@ Lyricue is an independent, MIT-licensed lyrics timing Web Component. Do not depe
 - Preserve stable nodes during playback, focused-instance keyboard routing, pointer cancellation, millisecond precision, and cleanup on disconnect. Reconnecting must not start playback automatically.
 - Lyrics are untrusted text. Use `textContent`; only package-owned static SVG markup may use `innerHTML`.
 - Use Node.js 22.18+ (24 recommended). Run `npm run check`, `npm test`, `npm run verify:package`, `npm run build:demo`, and `git diff --check` for relevant changes.
-- Do not commit generated dist files, dependencies, tarballs, credentials, or user media.
+- Do not commit generated dist files, dependencies, tarballs, credentials, or user media. The maintainer-approved defaults in `examples/standalone/assets/` are the demo-only exception; keep them out of the npm package.
 - npm publication and remote repository writes require explicit user authorization. Publish only an explicitly verified release tarball; CI does not publish npm packages.
 
 - The GitHub Pages playground lives in `examples/standalone/`, builds to ignored `demo-dist/`, and deploys from `main` using `.github/workflows/pages.yml`. Do not mix its output with library `dist/` or upload visitor files. Keep asset paths compatible with a project subpath.

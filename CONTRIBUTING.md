@@ -19,7 +19,7 @@ npm run build:demo
 - Add meaningful regression coverage for behavior changes; test the built package outside the source tree.
 - Do not commit generated `dist/`, `node_modules/`, tarballs, credentials, or user audio.
 
-The example synthesizes its own test audio. Please avoid copyrighted recordings or private user data in issues and pull requests.
+The playground includes maintainer-provided demo media, stored only in `examples/standalone/assets/` and excluded from the npm package. Do not add visitor uploads or private user data to issues, pull requests, or the repository.
 
 Submit changes through a pull request with a concise explanation of the behavior and validation. This repository uses the MIT license.
 

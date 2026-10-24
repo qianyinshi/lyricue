@@ -3,7 +3,7 @@ import process from 'node:process';
 import console from 'node:console';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -67,4 +67,5 @@ writeFileSync(join(folder, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
 run(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', join(folder, 'tsconfig.json')], folder);
 mkdirSync(join(folder, 'example'));
 for (const file of ['index.html', 'main.ts', 'demo-audio.ts', 'mode-illustration.ts', 'integration-examples.ts', 'page.css']) copyFileSync(join(root, 'examples/standalone', file), join(folder, 'example', file));
+cpSync(join(root, 'examples/standalone/assets'), join(folder, 'example/assets'), { recursive: true });
 console.log(JSON.stringify({ folder, tarball: join(folder, packed.filename), size: packed.size, unpackedSize: packed.unpackedSize, files: packed.files.length, checks: ['pack allowlist', 'zero runtime and peer dependencies', 'tarball install outside workspace', 'no DOM needed to import UI', 'core round trip', 'no application imports', 'NodeNext consumer types'] }, null, 2));

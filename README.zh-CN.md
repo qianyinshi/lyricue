@@ -227,7 +227,7 @@ npm run dev
 npm run verify:package
 ```
 
-独立示例位于 `http://127.0.0.1:4185`，只使用原生 HTML／TypeScript，提供原创合成的 20 秒音乐片段，也可选自己的音频和歌词，支持打轴、精调、下载和复制 LRC；文件只在浏览器中处理。
+独立示例位于 `http://127.0.0.1:4185`，只使用原生 HTML／TypeScript，默认使用《字节圈 1012》及配套歌词，也可选自己的音频和歌词，支持打轴、精调、下载和复制 LRC；文件只在浏览器中处理。
 
 `verify:package` 检查、运行 65 项算法测试、构建、打包，并在工作区外的**无框架项目**安装真实 `.tgz`，校验无 runtime／peer dependencies、公开文件清单、Node 安全导入、纯算法 round trip 和严格 NodeNext 类型消费。命令输出临时项目与打包文件路径。
 

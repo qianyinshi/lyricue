@@ -33,7 +33,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:4185`. The playground includes an original 20-second instrumental loop, or accepts your own audio and lyrics. It supports recording, refinement, and LRC download without uploading files. The app supports English and Chinese, with a saved language preference.
+Open `http://127.0.0.1:4185`. The playground includes the song “字节圈 1012” and its lyrics, or accepts your own audio and lyrics. It supports recording, refinement, and LRC download without uploading files. The app supports English and Chinese, with a saved language preference.
 
 To build and create an installable package:
 
