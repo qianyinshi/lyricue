@@ -33,7 +33,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:4185`. The playground includes the song “字节圈 1012” and its lyrics, or accepts your own audio and lyrics. It supports recording, refinement, and LRC download without uploading files. The app supports English and Chinese, with a saved language preference.
+Open `http://127.0.0.1:4185`. The playground includes the song “月下独酌 · 长乐宫舞” and its lyrics, or accepts your own audio and lyrics. It supports recording, refinement, and LRC download without uploading files. The app supports English and Chinese, with a saved language preference.
 
 To build and create an installable package:
 
@@ -283,3 +283,13 @@ Before publishing, confirm npm account permissions and the version, verify the t
 ## License
 
 [MIT](LICENSE).
+
+## Persistent app sessions
+
+These session APIs are available since `lyricue@0.2.0`.
+
+`editor.getSession()` returns a detached, JSON-serializable `LyricsEditorSession` (schema version `1`): timing and undo/redo history, selection, an open tap phrase, markers, phase, playhead and timeline viewport. It never contains audio bytes, a source URL or decoded waveforms. Persist it in host-owned storage, validate untrusted stored data with `readEditorSession` from `lyricue/core`, then pass it to `load({ audioSrc, lyrics, session })`. Restoration always starts paused. An interrupted physical hold is restored as a completed phrase; a tap phrase can continue from its original start. Invalid or future-version sessions are ignored by `load()`.
+
+`lyrics-session-change` is a lightweight notification (empty detail) when serializable state changes, including markers and playback position; debounce `getSession()` in your host instead of writing storage on every frame. `setPhase('refine')` returns `false` until every line has a timestamp and no phrase is open. `setPhase('rough')` preserves the existing document. The optional `showRoughPreview: true` displays live scrolling lyrics while recording and keeps the timeline visible on completion; its default is `false` for existing integrations.
+
+The standalone app stores per-audio projects and preferences in localStorage using a SHA-256 fingerprint of the complete file, so renaming a file preserves its progress and two different recordings with the same name stay separate. In browsers with File System Access API support, it stores only the selected file handle in IndexedDB. Every visit starts on the welcome screen; the audio and project load only after clicking Continue previous work. A still-permitted handle avoids selecting the file again; renewed permission is requested on that click. Unsupported browsers use the normal file picker. The demo link starts a fresh project after confirming replacement when saved work exists. Audio is never uploaded or stored by the app. Clearing browser site data removes saved progress and handles.

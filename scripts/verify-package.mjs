@@ -55,6 +55,10 @@ const theme: LyricsEditorTheme = 'auto';
 const colors: LyricsEditorColors = {accent:'#8fb9ff', waveform:'#9ac3ff', onAccent:'#0d2240'};
 editor.theme = theme; editor.colors = colors;
 editor.load({audioSrc:'/audio.wav', lyrics, theme, colors});
+const session: import('${manifest.name}').LyricsEditorSession | null = editor.getSession();
+if (session) editor.load({ audioSrc:'/audio.wav', lyrics, session, showRoughPreview:true });
+const changed: boolean = editor.setPhase('refine'); console.log(changed);
+editor.addEventListener('lyrics-session-change', event => console.log(event.detail));
 editor.locale = 'zh-CN'; editor.keyboardScope = 'focused'; editor.pause(true);
 editor.addEventListener('lyrics-save', event => { const text: string = event.detail.lyrics; console.log(text); });
 editor.addEventListener('lyrics-dirty-change', event => { const dirty: boolean = event.detail.dirty; console.log(dirty); });
@@ -66,6 +70,6 @@ editor.pause(); const snapshot: LyricDocument = editor.getDocument(); console.lo
 writeFileSync(join(folder, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext', lib: ['ES2022','DOM'], strict: true, skipLibCheck: false, noEmit: true, noUncheckedSideEffectImports: true }, include: ['types.ts'] }));
 run(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', join(folder, 'tsconfig.json')], folder);
 mkdirSync(join(folder, 'example'));
-for (const file of ['index.html', 'main.ts', 'demo-audio.ts', 'mode-illustration.ts', 'integration-examples.ts', 'page.css']) copyFileSync(join(root, 'examples/standalone', file), join(folder, 'example', file));
+for (const file of ['index.html', 'main.ts', 'demo-audio.ts', 'mode-illustration.ts', 'integration-examples.ts', 'page.css', 'projects.ts', 'strings.ts', 'file-handles.ts', 'cache-reset.ts', 'audio-files.ts']) copyFileSync(join(root, 'examples/standalone', file), join(folder, 'example', file));
 cpSync(join(root, 'examples/standalone/assets'), join(folder, 'example/assets'), { recursive: true });
 console.log(JSON.stringify({ folder, tarball: join(folder, packed.filename), size: packed.size, unpackedSize: packed.unpackedSize, files: packed.files.length, checks: ['pack allowlist', 'zero runtime and peer dependencies', 'tarball install outside workspace', 'no DOM needed to import UI', 'core round trip', 'no application imports', 'NodeNext consumer types'] }, null, 2));

@@ -2,7 +2,7 @@ import { compactRecordedLyrics, createTimingState, lyricBoundaryPreview, lyricEn
 import { beginLyricTake, previewLyricTake, rewindLyricRecording, type LyricTake, type RecordingMode } from '../lib/lyric-recording.js';
 import { addLyricMarker, lyricMarkerNavigation, toggleLyricMarker, type LyricMarker } from '../lib/lyric-markers.js';
 import { buildAudioWaveform, type AudioWaveform } from '../lib/audio-waveform.js';
-import type { LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorPhase } from '../types.js';
+import type { LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorPhase, LyricsEditorSession } from '../types.js';
 import { Timeline } from './Timeline.js';
 import { PlaybackPreview } from './PlaybackPreview.js';
 import { EditorTheme } from './theme.js';
@@ -13,6 +13,7 @@ export const copyDocument = (document: LyricDocument): LyricDocument => ({ lines
 type Emit = <K extends keyof LyricsEditorEventDetails>(type: K, detail: LyricsEditorEventDetails[K]) => void;
 export interface ViewSnapshot {
   state: TimingState; original: LyricDocument; mode: RecordingMode; phase: LyricsEditorPhase;
+  take?: LyricTake | null; viewport?: { scale: number; scrollLeft: number };
   markers: LyricMarker[]; positionMs: number; hasStarted: boolean; waveform: AudioWaveform | null;
 }
 
@@ -57,6 +58,7 @@ export class EditorView {
   private destroyed = false;
   private listeners = new AbortController();
   private renderedPhase: LyricsEditorPhase | null = null;
+  private sessionNotificationAt = 0;
   private previousDirty: boolean | null = null;
   private previousPhase: LyricsEditorPhase | null = null;
   private keys: Record<string, HTMLButtonElement> = {};
@@ -68,6 +70,11 @@ export class EditorView {
     this.state = snapshot?.state ?? createTimingState(copyDocument(this.original).lines, [...this.original.metadata]);
     this.mode = snapshot?.mode ?? options.mode ?? 'tap';
     this.phase = snapshot?.phase ?? (this.state.lines.every(line => line.timeMs !== null) ? 'refine' : 'rough');
+    this.take = snapshot?.take ?? null;
+    if (this.take?.mode === 'hold') {
+      this.state = { ...this.state, lines: previewLyricTake(this.take, snapshot?.positionMs ?? this.take.startMs, true), selected: Math.min(this.take.index + 1, this.state.lines.length) };
+      this.take = null; if (this.state.lines.every(line => line.timeMs !== null)) this.phase = 'complete';
+    }
     this.markers = snapshot?.markers ?? []; this.markerID = Math.max(0, ...this.markers.map(marker => marker.id)) + 1;
     this.positionMs = snapshot?.positionMs ?? 0; this.hasStarted = snapshot?.hasStarted ?? false; this.waveform = snapshot?.waveform ?? null;
     this.root.tabIndex = 0; attr(this.root, 'aria-label', '歌词打轴工作区'); attr(this.root, 'part', 'editor');
@@ -77,11 +84,12 @@ export class EditorView {
     this.waveStatus.append(this.waveText, this.retryWave); this.footerInfo.append(this.status, this.hints); this.footer.append(this.footerInfo, this.retry, this.playback, this.save);
     const thumb = icon('thumb'); thumb.classList.add('lyric-complete-icon');
     const completeText = element('p'); completeText.append(document.createTextNode('接下来，拖拽歌词滑块的位置或边界，'), element('br'), document.createTextNode('精细调整每一句歌词的精确时间。'));
-    this.complete.append(thumb, element('h2', '', '粗打完成'), completeText, button('开始精调', () => { this.phase = 'refine'; this.positionMs = 0; this.audio.currentTime = 0; this.render(); this.publish(); this.focus(); }, true));
-    attr(this.complete, 'role', 'status');
-    this.timeline = new Timeline({ select: index => { this.finishTake(); this.dispatch({ type: 'select', index }); },
+    this.complete.append(thumb, element('h2', '', '粗打完成'), completeText, button('开始精调', () => { this.setPhase('refine'); this.focus(); }, true));
+    attr(this.complete, 'role', 'status'); attr(this.complete, 'part', 'complete');
+    this.timeline = new Timeline({ viewportChange: () => this.emit('lyrics-session-change', {}), select: index => { this.finishTake(); this.dispatch({ type: 'select', index }); },
       seek: ms => this.seek(ms), change: (lines, index) => this.dispatch({ type: 'ranges', lines, index }), pause: () => this.pause(),
       audition: index => this.auditionLine(index), boundary: (index, edge, separate, lines) => this.auditionBoundary(index, edge, separate, lines) });
+    if (snapshot?.viewport) this.timeline.restoreViewport(snapshot.viewport);
     this.root.append(this.label, this.audio, this.empty, this.timeline.root, this.waveStatus, this.complete, this.preview.root, this.footer);
     this.appearance = new EditorTheme(this.root, this.options, () => this.render(), this.listeners.signal);
     this.timeline.setLocale(this.options.locale);
@@ -92,7 +100,7 @@ export class EditorView {
   }
   updateOptions(options: LyricsEditorOptions) {
     const changedLocale = options.locale !== this.options.locale; this.options = { ...options };
-    if (changedLocale) { this.renderedPhase = null; this.timeline.setLocale(options.locale); }
+    if (changedLocale) this.timeline.setLocale(options.locale);
     this.appearance.update(this.options); this.render();
   }
   private get playing() { return !this.audio.paused && !this.audio.ended; }
@@ -100,16 +108,28 @@ export class EditorView {
     return !sameLyricRanges(this.state.lines, this.original.lines) || this.state.lines.some((line, index) => line.text !== this.original.lines[index]?.text)
       || this.state.metadata.join('\n') !== this.original.metadata.join('\n') || this.take !== null || this.markers.length > 0;
   }
+  getSession(): LyricsEditorSession {
+    return structuredClone({ version: 1, state: this.state, original: this.original, mode: this.mode, phase: this.phase,
+      markers: this.markers, positionMs: Math.round(this.positionMs), hasStarted: this.hasStarted, take: this.take, viewport: this.timeline.getViewport() });
+  }
+  setPhase(phase: 'rough' | 'refine') {
+    if (phase === 'refine' && (this.take || !this.state.lines.length || this.state.lines.some(line => line.timeMs === null))) return false;
+    const changed = this.phase !== phase;
+    this.pause(true); this.auditionEnd = null; this.phase = phase;
+    if (changed) this.timeline.restoreViewport({ ...this.timeline.getViewport(), scrollLeft: 0 });
+    this.render(); this.publish(); return true;
+  }
   getDocument() { return copyDocument({ lines: this.take ? previewLyricTake(this.take, this.audio.currentTime * 1000) : this.state.lines, metadata: this.state.metadata }); }
   focus() { this.root.focus({ preventScroll: true }); }
-  pause(preserveTapPhrase = false) { if (!preserveTapPhrase || this.mode === 'hold') this.finishTake(); this.audio.pause(); this.updatePosition(); }
+  pause(preserveTapPhrase = false) { if (!preserveTapPhrase || this.mode === 'hold') this.finishTake(); this.audio.pause(); this.updatePosition(); this.emit('lyrics-session-change', {}); }
   requestClose() { const dirty = this.dirty; this.pause(); this.emit('lyrics-request-close', { dirty: dirty || this.dirty }); }
   snapshot(): ViewSnapshot {
-    this.pause();
-    return { state: this.state, original: this.original, phase: this.phase, mode: this.mode, markers: this.markers, positionMs: this.positionMs, hasStarted: this.hasStarted, waveform: this.waveform };
+    this.pause(true);
+    return { take: this.take, viewport: this.timeline.getViewport(), state: this.state, original: this.original, phase: this.phase, mode: this.mode, markers: this.markers, positionMs: this.positionMs, hasStarted: this.hasStarted, waveform: this.waveform };
   }
   private publish(changed = false) {
     if (this.destroyed) return;
+    this.emit('lyrics-session-change', {});
     if (changed) this.emit('lyrics-change', copyDocument(this.state));
     if (this.dirty !== this.previousDirty) { this.previousDirty = this.dirty; this.emit('lyrics-dirty-change', { dirty: this.dirty }); }
     if (this.phase !== this.previousPhase) { this.previousPhase = this.phase; this.emit('lyrics-phase-change', { phase: this.phase }); }
@@ -142,8 +162,9 @@ export class EditorView {
     this.take = null; this.audio.pause(); this.render(); this.publish(); return true;
   }
   private record(input: LyricTake['input'] = 'keyboard') {
-    if (!this.hasStarted && !this.take && this.audio.currentTime === 0 && this.state.lines.every(line => line.timeMs === null)) { this.togglePlayback(); return; }
-    if (this.take) { if (this.take.mode === 'tap' && !this.audio.paused) this.finishTake(true); }
+    // Space resumes a paused pass without stamping or advancing the current phrase.
+    if (this.audio.paused) { this.togglePlayback(); return; }
+    if (this.take) { if (this.take.mode === 'tap') this.finishTake(true); }
     else this.startTake(input);
   }
   private rewind() {
@@ -202,6 +223,7 @@ export class EditorView {
       const end = this.auditionEnd; this.auditionEnd = null; this.audio.pause(); this.audio.currentTime = end / 1000;
     }
     this.positionMs = this.audio.currentTime * 1000; this.render();
+    if (performance.now() - this.sessionNotificationAt > 300) { this.sessionNotificationAt = performance.now(); this.emit('lyrics-session-change', {}); }
   }
   private tick = () => { this.updatePosition(); if (!this.destroyed && this.playing) this.frame = requestAnimationFrame(this.tick); };
   private setupAudio() {
@@ -226,15 +248,12 @@ export class EditorView {
     this.root.addEventListener('pointerdown', () => { if (!this.root.contains(this.root.getRootNode() instanceof ShadowRoot ? (this.root.getRootNode() as ShadowRoot).activeElement : document.activeElement)) this.focus(); }, { capture: true, signal });
     // Capture suppresses local keycaps and boundary commands too while the host opens a confirmation.
     this.root.addEventListener('keydown', event => { if (this.options.keyboardEnabled === false && event.key !== 'Tab') { event.preventDefault(); event.stopPropagation(); } }, { capture: true, signal });
-    this.root.addEventListener('keydown', event => {
-      if (this.options.keyboardScope !== 'page' || ![' ', 'Enter'].includes(event.key)) return;
-      this.onKeyDown(event, true); if (event.defaultPrevented) event.stopPropagation();
-    }, { capture: true, signal });
     this.root.addEventListener('keydown', event => this.onKeyDown(event), { signal });
     document.addEventListener('keydown', event => {
       if (this.options.keyboardScope !== 'page' || event.composedPath().includes(this.root)) return;
       const target = event.composedPath()[0];
       if (document.querySelector('dialog[open]') || !(target instanceof HTMLElement) || target.closest('input, textarea, select, [contenteditable]:not([contenteditable=false]), lyrics-editor')) return;
+      if ([' ', 'Enter'].includes(event.key) && target.closest('button, a, summary')) return;
       this.onKeyDown(event, true);
     }, { signal });
     window.addEventListener('keyup', event => {
@@ -248,6 +267,7 @@ export class EditorView {
   private onKeyDown(event: KeyboardEvent, fromPage = false) {
     if (this.options.keyboardEnabled === false || event.isComposing || event.defaultPrevented) return;
     const target = fromPage ? this.root : event.target as HTMLElement;
+    if (!event.metaKey && !event.ctrlKey && !event.altKey && [' ', 'Enter'].includes(event.key) && target.closest('button')) return;
     if (event.key === 'Escape') { event.preventDefault(); if (!this.cancelTake()) this.requestClose(); return; }
     if (this.phase === 'complete' || target.closest('input, textarea, select, [contenteditable=true]')) return;
     if (this.timeline.handleZoom(event)) return;
@@ -255,7 +275,6 @@ export class EditorView {
     if (command && key === 'z') { event.preventDefault(); if (!event.repeat) { if (event.shiftKey) { if (!this.take) this.dispatch({ type: 'redo' }); } else if (!this.cancelTake()) this.dispatch({ type: 'undo' }); } return; }
     if (command && key === 'enter') { event.preventDefault(); if (!event.repeat) this.apply(); return; }
     if (command || event.altKey || ![' ', 'p', 'l', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'enter', 'delete', 'backspace'].includes(key)) return;
-    if (key === 'enter' && target.closest('button') && !target.closest('.lyric-clip-text')) return;
     event.preventDefault(); if (event.repeat) return;
     if (key === ' ') { if (this.phase === 'rough') this.record(); else this.togglePlayback(); }
     if (key === 'p' || key === 'enter') this.togglePlayback();
@@ -304,22 +323,23 @@ export class EditorView {
     if (this.destroyed) return;
     if (this.renderedPhase !== this.phase) { this.renderedPhase = this.phase; this.buildHints(); }
     const complete = this.phase === 'complete', refine = this.phase === 'refine', lines = this.take ? previewLyricTake(this.take, this.positionMs) : this.state.lines;
-    this.label.hidden = complete; this.complete.hidden = !complete; this.footer.hidden = complete; this.preview.root.hidden = !refine;
-    this.empty.hidden = complete || this.ready; this.timeline.root.hidden = complete || !this.ready;
+    this.label.hidden = complete; this.complete.hidden = !complete; this.footer.hidden = complete; this.preview.root.hidden = !refine && !this.options.showRoughPreview;
+    this.root.classList.toggle('has-rough-preview', Boolean(this.options.showRoughPreview));
+    this.empty.hidden = complete || this.ready; this.timeline.root.hidden = (complete && !this.options.showRoughPreview) || !this.ready;
     text(this.label, refine ? '拖拽歌词方块边缘，精细调整每句话的位置。' : (this.mode === 'tap' ? '点击空格键切换下一句歌词' : '按住空格键标记当前句，松开切换下一句歌词') + '。打错了也不要紧，继续打完，然后再调整。');
     text(this.empty, this.mediaError || '正在加载音频轨道…');
     this.waveStatus.hidden = complete || !this.ready || (!this.waveformLoading && !this.waveformError); text(this.waveText, this.waveformLoading ? '正在读取音频并生成波形…' : this.waveformError); this.retryWave.hidden = !this.waveformError;
     const navigation = lyricMarkerNavigation(this.markers, this.positionMs);
-    if (this.ready && !complete) this.timeline.update({ lines, selected: this.take?.index ?? this.state.selected, durationMs: this.durationMs, positionMs: this.positionMs, playing: this.playing,
+    if (this.ready && (!complete || this.options.showRoughPreview)) this.timeline.update({ lines, selected: this.take?.index ?? this.state.selected, durationMs: this.durationMs, positionMs: this.positionMs, playing: this.playing,
       keyboardEnabled: this.options.keyboardEnabled !== false, markers: this.markers, currentMarkerID: navigation.current?.id, recordingIndex: this.take?.index, readonly: !refine, waveform: this.waveform });
-    if (refine) this.preview.update(this.state.lines, this.positionMs);
+    if (refine || this.options.showRoughPreview) this.preview.update(lines, this.positionMs, !refine ? Math.min(this.take?.index ?? this.state.selected, lines.length - 1) : undefined);
     const issues = timingIssues(lines, this.durationMs), invalid = [...issues.keys()].some(index => lines[index].timeMs !== null);
     const status = this.mediaError || (!lines.length ? '没有可编辑的歌词，请传入歌词后重新打开编辑器。' : !this.ready ? '正在加载音频…' : this.waiting ? '正在缓冲…' : invalid ? refine ? '时间范围无效，请拖拽歌词边界调整' : '时间范围无效，请选句后按 Delete 重打' : '');
     text(this.status, status); this.status.hidden = !status;
     const disabled = !this.ready || Boolean(this.mediaError);
     for (const key of Object.values(this.keys)) key.disabled = disabled;
     if (this.keys.enter) this.keys.enter.parentElement!.classList.toggle('is-highlighted', !this.playing);
-    if (!refine && this.keys.space) { this.keys.space.disabled = !this.take && (disabled || this.waiting || !this.state.lines[this.state.selected]); this.keys.space.parentElement!.classList.toggle('is-highlighted', this.playing); text(this.captions.enter, this.playing ? '暂停' : this.hasStarted ? '继续打轴' : '开始/暂停打轴'); }
+    if (!refine && this.keys.space) { this.keys.space.disabled = !this.take && (disabled || this.waiting || !this.state.lines[this.state.selected]); this.keys.space.parentElement!.classList.toggle('is-highlighted', this.playing); text(this.captions.enter, this.playing ? '暂停' : this.hasStarted ? '继续' : '开始/暂停打轴'); }
     if (refine && this.keys.left) { this.keys.left.disabled = disabled || !navigation.previous; this.keys.right.disabled = disabled || !navigation.next; attr(this.keys.mark, 'aria-pressed', Boolean(navigation.current)); }
     this.retry.hidden = !this.mediaError; this.playback.hidden = !refine; this.playback.disabled = disabled;
     const playbackLabel = this.playing ? '暂停' : '播放'; if (this.playback.getAttribute('aria-label') !== playbackLabel) { attr(this.playback, 'aria-label', playbackLabel); this.playback.replaceChildren(icon(this.playing ? 'pause' : 'play'), document.createTextNode(playbackLabel)); }

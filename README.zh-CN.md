@@ -1,57 +1,38 @@
 # Lyricue
 
-可嵌入页面、弹窗或侧栏的歌词打轴 **Web Component**。运行时和 peer dependencies 均为零；不依赖 React、Vue、Semi UI、Router 或业务 API。
+零依赖的歌词打轴工具
 
-> MIT 开源。可通过 npm 安装：`npm install lyricue`。
+[在线试用](https://qianyinshi.github.io/lyricue/) | [English](README.md)
 
-[在线演示](https://qianyinshi.github.io/lyricue/) · [English](README.md)
+## 开始使用
 
-## 能力
+### 通过 npm 或 pnpm 等包管理器引入
 
-- 浏览器读取音频生成真实波形，缩放、横向滚动、播放游标与自动跟随。
-- 点按／长按打轴，暂停续打、重打上一句及可点击的快捷键键帽。
-- 歌词边界单侧／双侧调整、片段与边界短试听、撤销／重做。
-- L 时间标记、方向键定位及自动滚动的歌词预览。
-- LRC 解析／导出，包括重复标签、offset、显式句尾与间奏留白。
-- Shadow DOM 隔离样式；CSS 变量继承宿主主题。
-- 独立 `/core` 纯算法入口，无需 DOM，可用于 Node.js 和自定义 UI。
+#### 安装
 
-## 安装与使用
+```bash
+# 使用 npm 作为包管理器
+npm install -S lyricue
 
-在项目中安装：
-
-```sh
-npm install lyricue
+# 使用 pnpm 作为包管理器
+pnpm add lyricue
 ```
+
+#### 使用
 
 ```ts
 import { defineLyricsEditor } from 'lyricue';
 
-defineLyricsEditor(); // 幂等，只需注册一次
+defineLyricsEditor();
 const editor = document.createElement('lyrics-editor');
-editor.load({
-  audioSrc: '/song.mp3',
-  lyrics: '第一句歌词\n第二句歌词',
-  mode: 'tap',
-});
+editor.load({ audioSrc: '/song.mp3', lyrics: '第一句歌词\n第二句歌词', mode: 'tap' });
 editor.addEventListener('lyrics-save', event => {
-  console.log(event.detail.lyrics);   // LRC 字符串
-  console.log(event.detail.document); // 整数毫秒的独立文档快照
+  console.log(event.detail.lyrics); // LRC 格式歌词
 });
 document.querySelector('#container')!.append(editor);
 ```
 
-无需另外导入 CSS。第一版 UI 为简体中文。需要支持 Custom Elements、Shadow DOM、Web Audio、Pointer Events、ResizeObserver 与 AbortSignal 事件监听的现代浏览器。
-
-也可以自动注册：
-
-```ts
-import 'lyricue/register';
-```
-
-### 原生 HTML，无需构建工具
-
-将 `.tgz` 中整个 `dist/` 目录放在静态服务器的 `/vendor/lyrics-editor/` 下，保持文件间的相对路径：
+### HTML 引入
 
 ```html
 <lyrics-editor
@@ -62,22 +43,20 @@ import 'lyricue/register';
 <script type="module" src="/vendor/lyrics-editor/register.js"></script>
 ```
 
-用 HTTP 服务访问页面。所有 JS 模块和组件样式都随 `dist/` 提供，不需要 CDN 框架或额外运行时。
-
 ## 会话与属性
 
 `load(options)` 替换整个会话，重置播放位置、撤销历史和临时标记。完整带时间的 LRC 直接进入精调；普通／混合歌词进入粗打，完成后点击“开始精调”。
 
-| JS 属性／选项 | HTML 属性 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `audioSrc` | `audio-src` | `''` | 同源、允许 CORS 的远端／签名 URL 或 Blob URL |
-| `lyrics` | `lyrics` | `''` | 初始字符串或 `LyricDocument`；HTML 属性仅接受字符串 |
-| `mode` | `mode` | `'tap'` | `'tap'`／`'hold'`；会话内 UI 不切换模式 |
-| `saveLabel` | `save-label` | `'保存歌词'` | 保存按钮文字 |
-| `showSave` | `hide-save`（反向） | `true` | 是否显示保存按钮 |
-| `keyboardEnabled` | `keyboard-disabled`（反向） | `true` | 启停快捷键、键帽键盘激活和边界键盘编辑 |
-| `preventUnload` | `no-unload-guard`（反向） | `true` | 有修改时提示关闭页面 |
-| `autoFocus`（仅 load 选项） | `autofocus` | `false` | 会话挂载时聚焦编辑器 |
+| JS 属性／选项               | HTML 属性                   | 默认值       | 说明                                                |
+| --------------------------- | --------------------------- | ------------ | --------------------------------------------------- |
+| `audioSrc`                  | `audio-src`                 | `''`         | 同源、允许 CORS 的远端／签名 URL 或 Blob URL        |
+| `lyrics`                    | `lyrics`                    | `''`         | 初始字符串或 `LyricDocument`；HTML 属性仅接受字符串 |
+| `mode`                      | `mode`                      | `'tap'`      | `'tap'`／`'hold'`；会话内 UI 不切换模式             |
+| `saveLabel`                 | `save-label`                | `'保存歌词'` | 保存按钮文字                                        |
+| `showSave`                  | `hide-save`（反向）         | `true`       | 是否显示保存按钮                                    |
+| `keyboardEnabled`           | `keyboard-disabled`（反向） | `true`       | 启停快捷键、键帽键盘激活和边界键盘编辑              |
+| `preventUnload`             | `no-unload-guard`（反向）   | `true`       | 有修改时提示关闭页面                                |
+| `autoFocus`（仅 load 选项） | `autofocus`                 | `false`      | 会话挂载时聚焦编辑器                                |
 
 单独修改 `audioSrc`、`lyrics` 或 `mode` 也会重建会话；批量变更优先用一次 `load()`。其他属性可即时更新且保留草稿。HTML 布尔属性按**是否存在**判断，`keyboard-disabled="false"` 仍会禁用；启用时移除该属性。
 
@@ -89,13 +68,13 @@ import 'lyricue/register';
 
 事件使用 `CustomEvent`，均 `bubbles: true`、`composed: true`，可在组件或外层容器监听。
 
-| 事件 | `event.detail` |
-| --- | --- |
-| `lyrics-save` | `{ lyrics: string, document: LyricDocument }` |
-| `lyrics-change` | `LyricDocument`，初始／已提交内容变化；不会逐播放帧发出 |
-| `lyrics-dirty-change` | `{ dirty: boolean }`，包含正在录制的句子与临时标记 |
-| `lyrics-phase-change` | `{ phase: 'rough' \| 'complete' \| 'refine' }` |
-| `lyrics-request-close` | `{ dirty: boolean }`，Escape 或 `requestClose()` 发出 |
+| 事件                   | `event.detail`                                          |
+| ---------------------- | ------------------------------------------------------- |
+| `lyrics-save`          | `{ lyrics: string, document: LyricDocument }`           |
+| `lyrics-change`        | `LyricDocument`，初始／已提交内容变化；不会逐播放帧发出 |
+| `lyrics-dirty-change`  | `{ dirty: boolean }`，包含正在录制的句子与临时标记      |
+| `lyrics-phase-change`  | `{ phase: 'rough' \| 'complete' \| 'refine' }`          |
+| `lyrics-request-close` | `{ dirty: boolean }`，Escape 或 `requestClose()` 发出   |
 
 事件与 `getDocument()` 返回独立快照，不暴露内部可变数据。保存事件由宿主持久化；组件不会上传、关闭或自动清除 dirty 状态。通知不应直接触发不可重复的远端写操作。
 
@@ -158,17 +137,17 @@ export function Editor() {
 
 快捷键限于聚焦的编辑器，不影响外部输入框或其他实例。键帽也支持鼠标点击；长按键帽支持指针捕获。
 
-| 键 | 粗打 | 精调 |
-| --- | --- | --- |
-| Enter | 开始／暂停，长按模式提交当前句再暂停 | 播放／暂停 |
-| Space | 点按切下一句，或按住开始／松开结束 | 播放／暂停 |
-| Backspace | 重打上一句，首句回到 0 秒 | — |
-| L | 添加时间标记 | 添加／取消当前标记 |
-| 左／右 | 前后定位播放位置 | 定位到上一个／下一个标记 |
-| Cmd/Ctrl+Z | 撤销 | 撤销 |
-| Cmd/Ctrl+Shift+Z | 重做 | 重做 |
-| `+`／`-`／`0` | 缩放／适配整曲 | 缩放／适配整曲 |
-| Cmd/Ctrl+Enter | — | 保存 |
+| 键               | 粗打                                 | 精调                     |
+| ---------------- | ------------------------------------ | ------------------------ |
+| Enter            | 开始／暂停，长按模式提交当前句再暂停 | 播放／暂停               |
+| Space            | 点按切下一句，或按住开始／松开结束   | 播放／暂停               |
+| Backspace        | 重打上一句，首句回到 0 秒            | —                        |
+| L                | 添加时间标记                         | 添加／取消当前标记       |
+| 左／右           | 前后定位播放位置                     | 定位到上一个／下一个标记 |
+| Cmd/Ctrl+Z       | 撤销                                 | 撤销                     |
+| Cmd/Ctrl+Shift+Z | 重做                                 | 重做                     |
+| `+`／`-`／`0`    | 缩放／适配整曲                       | 缩放／适配整曲           |
+| Cmd/Ctrl+Enter   | —                                    | 保存                     |
 
 Ctrl/Cmd+滚轮可缩放；拖拽时按 Shift 临时关闭吸附。边界聚焦后 Shift+左右方向键做 1ms 调整，Enter／Space 短试听。临时标记不写入 LRC。
 
@@ -227,7 +206,7 @@ npm run dev
 npm run verify:package
 ```
 
-独立示例位于 `http://127.0.0.1:4185`，只使用原生 HTML／TypeScript，默认使用《字节圈 1012》及配套歌词，也可选自己的音频和歌词，支持打轴、精调、下载和复制 LRC；文件只在浏览器中处理。
+独立示例位于 `http://127.0.0.1:4185`，只使用原生 HTML／TypeScript，默认使用《月下独酌 · 长乐宫舞》及配套歌词，也可选自己的音频和歌词，支持打轴、精调、下载和复制 LRC；文件只在浏览器中处理。
 
 `verify:package` 检查、运行 65 项算法测试、构建、打包，并在工作区外的**无框架项目**安装真实 `.tgz`，校验无 runtime／peer dependencies、公开文件清单、Node 安全导入、纯算法 round trip 和严格 NodeNext 类型消费。命令输出临时项目与打包文件路径。
 
@@ -265,3 +244,13 @@ editor.colors = {
 `colors` 替换之前的覆盖项，赋值 `{}` 恢复主题／宿主样式；传入和读取均为独立副本。原有 CSS 变量继续可用，新颜色使用 `--lyrics-editor-` 加 kebab-case，例如 `--lyrics-editor-waveform-background`。显式传入的 JS 颜色优先于宿主 CSS 变量。
 
 初始状态下（播放头在零点，尚未启动且歌词都未打轴），第一次空格只启动音乐，不标记第一句，与回车相同。之后再按空格才开始记录；点按和长按模式都遵循此规则。
+
+## 工作会话与本地恢复
+
+以下会话 API 自 `lyricue@0.2.0` 起提供。
+
+`editor.getSession()` 返回独立、可 JSON 序列化的 `LyricsEditorSession`（schema `1`），包括打轴结果、撤销／重做历史、选句、未结束的点按句、标记、阶段、播放位置与时间线视口；不包含音频、URL 或解码后的波形。宿主自行保存，通过 `lyricue/core` 的 `readEditorSession()` 校验后传给 `load({ audioSrc, lyrics, session })`。恢复后始终暂停；点按句可从原开始位置继续，跨页面中断的物理长按按已完成句恢复。无效或不兼容的 schema 会被忽略。
+
+`lyrics-session-change` 是空 detail 的轻量变更通知，涵盖标记、播放位置等会话状态；宿主应节流读取 `getSession()`，避免逐帧写存储。`setPhase('refine')` 只在所有行已打轴且没有未提交句时成功，返回布尔值；`setPhase('rough')` 保留现有结果。`showRoughPreview: true` 在粗打时也展示滚动歌词、完成时保留轨道，默认 `false` 兼容已有接入。
+
+独立工具页按音频完整内容的 SHA-256 在 localStorage 分别保存工作和偏好：重命名不影响恢复，同名但内容不同的音频互不覆盖。支持 File System Access API 的浏览器通过 IndexedDB 只记住文件句柄；每次访问先展示欢迎页，只有点击“继续之前的工作”后才读取音频并恢复进度；已有权限时无需重新选文件，需要续期时在点击后请求授权。不支持时使用普通文件选择器。demo 入口始终新建项目，有历史进度时先确认覆盖。工具不上传或保存音频内容；清除浏览器站点数据会同时删除进度和句柄。

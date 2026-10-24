@@ -1,6 +1,6 @@
 {
   "name": "lyricue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A zero-dependency Web Component for syncing lyrics to music, featuring audio waveforms, keyboard controls, and precise timeline editing.",
   "license": "MIT",
   "type": "module",

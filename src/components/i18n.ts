@@ -45,7 +45,7 @@ const english: Record<string, string> = {
   "时间范围无效，请拖拽歌词边界调整": "Invalid timing. Drag the lyric edges to adjust.",
   "时间范围无效，请选句后按 Delete 重打": "Invalid timing. Select a line and press Delete to redo.",
   "暂停": "Pause",
-  "继续打轴": "Resume timing",
+  "继续": "Resume",
   "滚动歌词预览": "Scrolling lyrics preview",
   "歌词时间线微调": "Lyrics timeline",
   "音频与歌词轨道，横向滚动查看": "Audio and lyric tracks. Scroll horizontally to explore.",

@@ -11,6 +11,7 @@ export interface TimelineData {
 }
 interface Callbacks {
   select: (index: number) => void; seek: (ms: number) => void; change: (lines: LyricLine[], index: number) => void;
+  viewportChange?: () => void;
   pause: () => void; audition: (index: number) => void;
   boundary: (index: number, edge: LyricEdge, separate: boolean, lines?: LyricLine[]) => void;
 }
@@ -37,6 +38,9 @@ export class Timeline {
   private markerNodes = new Map<number, HTMLDivElement>();
   private data: TimelineData | null = null;
   private scale = 80;
+  private pendingViewport: { scale: number; scrollLeft: number } | null = null;
+  getViewport() { return { ...(this.pendingViewport ?? { scale: this.scale, scrollLeft: this.viewport.scrollLeft }) }; }
+  restoreViewport(viewport: { scale: number; scrollLeft: number }) { this.pendingViewport = { ...viewport }; }
   private locale: 'zh-CN' | 'en' = 'zh-CN';
   setLocale(locale: 'zh-CN' | 'en' = 'zh-CN') { this.locale = locale; this.paintKey = ''; this.render(); }
   private drag: Drag | null = null;
@@ -54,7 +58,7 @@ export class Timeline {
     this.content.append(this.canvas, this.selection, this.pending, this.playhead); this.playhead.append(element('i'));
     attr(this.selection, 'aria-hidden', true); attr(this.playhead, 'aria-hidden', true);
     this.viewport.tabIndex = 0; attr(this.viewport, 'role', 'region'); attr(this.viewport, 'aria-label', '音频与歌词轨道，横向滚动查看');
-    this.viewport.addEventListener('scroll', () => this.render());
+    this.viewport.addEventListener('scroll', () => { this.render(); this.callbacks.viewportChange?.(); });
     this.viewport.addEventListener('wheel', event => {
       if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault(); this.zoom(this.pps * Math.exp(-event.deltaY * .003), event.clientX - this.viewport.getBoundingClientRect().left);
@@ -87,14 +91,14 @@ export class Timeline {
   handleZoom(event: KeyboardEvent) {
     if (!this.data?.keyboardEnabled || event.metaKey || event.ctrlKey || event.altKey || !['+', '=', '-', '0'].includes(event.key)) return false;
     event.preventDefault();
-    if (event.key === '0') { this.scale = this.fitScale; this.viewport.scrollLeft = 0; this.render(); }
+    if (event.key === '0') { this.scale = this.fitScale; this.viewport.scrollLeft = 0; this.render(); this.callbacks.viewportChange?.(); }
     else this.zoom(this.pps * (event.key === '-' ? 1 / 1.5 : 1.5));
     return true;
   }
   private zoom(next: number, x = this.viewport.clientWidth / 2) {
     const anchor = (this.viewport.scrollLeft + x) / this.pps * 1000;
     this.scale = Math.min(Math.max(this.fitScale, 1000), Math.max(this.fitScale, next));
-    this.content.style.width = this.width + 'px'; this.viewport.scrollLeft = Math.max(0, anchor / 1000 * this.pps - x); this.render();
+    this.content.style.width = this.width + 'px'; this.viewport.scrollLeft = Math.max(0, anchor / 1000 * this.pps - x); this.render(); this.callbacks.viewportChange?.();
   }
   private reveal(time: number) {
     const cursor = time / 1000 * this.pps;
@@ -105,10 +109,15 @@ export class Timeline {
     if (!this.data || this.rendering) return;
     this.rendering = true;
     try {
+      const restoringViewport = Boolean(this.pendingViewport);
+      if (this.pendingViewport && this.data.durationMs > 0) {
+        this.scale = this.pendingViewport.scale; this.content.style.width = this.width + 'px';
+        this.viewport.scrollLeft = this.pendingViewport.scrollLeft; this.pendingViewport = null;
+      }
       const d = this.data, lines = this.drag?.kind === 'boundary' ? this.drag.result : d.lines;
       this.root.classList.toggle('is-readonly', d.readonly); this.content.style.width = this.width + 'px';
-      if (!this.drag && d.playing) this.reveal(d.positionMs);
-      if (!this.drag && d.currentMarkerID !== this.lastMarker && d.currentMarkerID !== undefined) {
+      if (!this.drag && !restoringViewport && d.playing) this.reveal(d.positionMs);
+      if (!this.drag && !restoringViewport && d.currentMarkerID !== this.lastMarker && d.currentMarkerID !== undefined) {
         const marker = d.markers.find(marker => marker.id === d.currentMarkerID); if (marker) this.reveal(marker.timeMs);
       }
       this.lastMarker = d.currentMarkerID;

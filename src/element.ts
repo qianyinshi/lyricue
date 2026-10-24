@@ -1,6 +1,7 @@
-import type { LyricsEditorElement, LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorTheme, LyricsEditorColors } from './types.js';
+import type { LyricsEditorElement, LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorTheme, LyricsEditorColors, LyricsEditorSession } from './types.js';
 import type { LyricDocument } from './lib/lyric-timing.js';
 import type { RecordingMode } from './lib/lyric-recording.js';
+import { readEditorSession } from './lib/editor-session.js';
 import { parseLyrics } from './lib/lyric-timing.js';
 import { EditorView, copyDocument, type ViewSnapshot } from './components/EditorView.js';
 import editorCSS from './components/editor.css?raw';
@@ -71,8 +72,12 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
       this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, composed: true }));
     }
     load(options: LyricsEditorOptions) {
+      const session = readEditorSession(options.session);
       this.options = { ...this.options, ...options, colors: { ...(options.colors ?? this.options.colors) }, lyrics: typeof options.lyrics === 'string' ? options.lyrics : copyDocument(options.lyrics) }; this.reset();
+      if (session) this.saved = { ...session, waveform: null };
     }
+    getSession(): LyricsEditorSession | null { return this.view?.getSession() ?? null; }
+    setPhase(phase: 'rough' | 'refine') { return this.view?.setPhase(phase) ?? false; }
     get audioSrc() { return this.options.audioSrc; }
     set audioSrc(value: string) { if (value !== this.options.audioSrc) { this.options.audioSrc = value; this.reset(); } }
     get lyrics() { return typeof this.options.lyrics === 'string' ? this.options.lyrics : copyDocument(this.options.lyrics); }

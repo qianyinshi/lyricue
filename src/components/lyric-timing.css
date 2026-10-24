@@ -48,3 +48,10 @@
   .lyric-keyboard-hints kbd { min-width:22px; padding-inline:3px; gap:3px; }
   .lyric-keyboard-hints svg { width:14px; height:14px; }
 }
+
+/* An app may keep the timeline and preview visible when a rough pass completes. */
+.has-rough-preview .lyric-rough-complete { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:16px 0 0; text-align:left; }
+.has-rough-preview .lyric-rough-complete .lyric-complete-icon { font-size:24px; }
+.has-rough-preview .lyric-rough-complete h2 { margin:0; font-size:16px; }
+.has-rough-preview .lyric-rough-complete p { display:none; }
+.has-rough-preview .lyric-rough-complete > button { margin:0 0 0 auto; }
