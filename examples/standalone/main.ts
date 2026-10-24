@@ -8,9 +8,9 @@ type Locale = 'zh-CN' | 'en';
 type Stage = 'rough' | 'refine';
 const strings = {
   intro: ['超好用的零依赖歌词打轴工具', 'A delightfully simple, zero-dependency lyrics timing tool.'],
-  rough: ['快速粗打', 'Quick timing'], refine: ['精调时间轴', 'Fine-tune timeline'], audio: ['你的音频', 'Your audio'],
-  uploadAudio: ['上传新音频', 'Upload new audio'], demo: ['使用示例音频', 'Use demo audio'], demoName: ['示例音乐.wav', 'Demo instrumental.wav'],
-  lyrics: ['歌词', 'Lyrics'], edit: ['编辑歌词', 'Edit lyrics'], upload: ['上传', 'Upload'], mode: ['打轴方式', 'Recording mode'],
+  rough: ['快速粗打', 'Quick timing'], refine: ['精调时间轴', 'Fine-tune timeline'], audio: ['音频', 'Audio'],
+  demo: ['使用示例音频', 'Use demo audio'], demoName: ['示例音乐.wav', 'Demo instrumental.wav'],
+  lyrics: ['歌词', 'Lyrics'], edit: ['编辑', 'Edit'], editLyrics: ['编辑歌词', 'Edit lyrics'], upload: ['上传', 'Upload'], mode: ['打轴方式', 'Recording mode'],
   tap: ['点按模式', 'Tap mode'], hold: ['长按模式', 'Hold mode'],
   chooseMode: ['选择你喜欢的打轴方式', 'Choose your timing mode'], recommended: ['推荐', 'Recommended'], applyMode: ['应用方式', 'Apply mode'],
   tapDescription: ['点一下空格，进入下一句。句与句连续衔接，自动去除所有空行。', 'Tap Space to advance to the next line. Lines connect continuously; empty lines are removed.'],
