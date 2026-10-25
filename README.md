@@ -142,6 +142,7 @@ All events are typed `CustomEvent`s with `bubbles: true` and `composed: true`.
 Documents returned by events and `getDocument()` are detached snapshots. The host owns saving and closing; a save event does not persist data or automatically clear the dirty state.
 
 - `load(options)`: replace the session.
+- `getLoadState()`: read a detached loading status snapshot. `ready` requires playable audio data, lyrics and a decoded waveform. Listen to `lyrics-load-state-change` before `load()` to drive host loading dialogs. Loading failures report the failing resource; retry by calling `load()` again. Normal playback buffering does not reset the editing session.
 - `pause(preserveTapPhrase = false)`: pause and commit an open phrase. Pass `true` to keep a tap phrase open for manual resume; hold mode always commits before pausing.
 - `focus()`: focus the workspace and activate its keyboard shortcuts.
 - `requestClose()`: pause and ask the host to handle closing.

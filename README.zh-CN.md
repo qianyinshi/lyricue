@@ -86,6 +86,7 @@ document.querySelector('#container')!.append(editor);
 方法：
 
 - `load(options)`：载入新会话。
+- `getLoadState()`：读取独立的加载状态快照。音频已有可播放数据、歌词和解码波形均就绪后才为 `ready`；先监听 `lyrics-load-state-change` 再调用 `load()`，可驱动宿主 loading 弹窗。失败时返回对应资源，可再次 `load()` 重试；播放缓冲不会重置编辑会话。
 - `pause()`：暂停并提交当前录制句；键盘 Enter 在点按模式下保留当前句以便续打。
 - `focus()`：聚焦工作区，使键盘快捷键作用于此实例。
 - `requestClose()`：暂停并请求宿主决定是否关闭。

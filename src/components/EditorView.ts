@@ -2,7 +2,7 @@ import { compactRecordedLyrics, createTimingState, lyricBoundaryPreview, lyricEn
 import { beginLyricTake, previewLyricTake, rewindLyricRecording, type LyricTake, type RecordingMode } from '../lib/lyric-recording.js';
 import { addLyricMarker, lyricMarkerNavigation, toggleLyricMarker, type LyricMarker } from '../lib/lyric-markers.js';
 import { buildAudioWaveform, type AudioWaveform } from '../lib/audio-waveform.js';
-import type { LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorPhase, LyricsEditorSession } from '../types.js';
+import type { LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorPhase, LyricsEditorSession, LyricsEditorLoadState } from '../types.js';
 import { Timeline } from './Timeline.js';
 import { PlaybackPreview } from './PlaybackPreview.js';
 import { EditorTheme } from './theme.js';
@@ -59,6 +59,7 @@ export class EditorView {
   private listeners = new AbortController();
   private renderedPhase: LyricsEditorPhase | null = null;
   private sessionNotificationAt = 0;
+  private previousLoadState: LyricsEditorLoadState | null = null;
   private previousDirty: boolean | null = null;
   private previousPhase: LyricsEditorPhase | null = null;
   private keys: Record<string, HTMLButtonElement> = {};
@@ -107,6 +108,12 @@ export class EditorView {
   private get dirty() {
     return !sameLyricRanges(this.state.lines, this.original.lines) || this.state.lines.some((line, index) => line.text !== this.original.lines[index]?.text)
       || this.state.metadata.join('\n') !== this.original.metadata.join('\n') || this.take !== null || this.markers.length > 0;
+  }
+  getLoadState(): LyricsEditorLoadState {
+    if (!this.state.lines.length) return { status: 'error', error: 'lyrics' };
+    if (this.mediaError) return { status: 'error', error: 'audio' };
+    if (this.waveformError) return { status: 'error', error: 'waveform' };
+    return { status: this.ready && this.audio.readyState >= 2 && this.waveform && !this.waveformLoading ? 'ready' : 'loading' };
   }
   getSession(): LyricsEditorSession {
     return structuredClone({ version: 1, state: this.state, original: this.original, mode: this.mode, phase: this.phase,
@@ -236,6 +243,7 @@ export class EditorView {
       } else this.mediaError = '无法读取音频时长，请重新选择可播放的音乐文件。'; this.render();
     }, { signal });
     this.audio.addEventListener('timeupdate', () => this.updatePosition(), { signal });
+    this.audio.addEventListener('loadeddata', () => this.render(), { signal });
     this.audio.addEventListener('play', () => { this.hasStarted = true; cancelAnimationFrame(this.frame); this.frame = requestAnimationFrame(this.tick); this.render(); }, { signal });
     this.audio.addEventListener('pause', () => { if (this.audio.paused) { cancelAnimationFrame(this.frame); this.updatePosition(); } }, { signal });
     this.audio.addEventListener('ended', () => { if (this.audio.ended) { this.finishTake(); this.render(); } }, { signal });
@@ -348,6 +356,10 @@ export class EditorView {
     this.root.dataset.phase = this.phase;
     translateUI(this.root, this.options.locale);
     this.root.lang = this.options.locale ?? 'zh-CN';
+    const loadState = this.getLoadState();
+    if (loadState.status !== this.previousLoadState?.status || loadState.error !== this.previousLoadState?.error) {
+      this.previousLoadState = loadState; this.emit('lyrics-load-state-change', { ...loadState });
+    }
   }
   destroy() {
     this.destroyed = true; this.listeners.abort(); this.waveformAbort?.abort(); this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load();

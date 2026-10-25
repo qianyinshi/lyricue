@@ -58,6 +58,8 @@ editor.load({audioSrc:'/audio.wav', lyrics, theme, colors});
 const session: import('${manifest.name}').LyricsEditorSession | null = editor.getSession();
 if (session) editor.load({ audioSrc:'/audio.wav', lyrics, session, showRoughPreview:true });
 const changed: boolean = editor.setPhase('refine'); console.log(changed);
+const loadState: import('${manifest.name}').LyricsEditorLoadState = editor.getLoadState(); console.log(loadState.status);
+editor.addEventListener('lyrics-load-state-change', event => console.log(event.detail.status, event.detail.error));
 editor.addEventListener('lyrics-session-change', event => console.log(event.detail));
 editor.locale = 'zh-CN'; editor.keyboardScope = 'focused'; editor.pause(true);
 editor.addEventListener('lyrics-save', event => { const text: string = event.detail.lyrics; console.log(text); });

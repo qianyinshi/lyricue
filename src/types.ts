@@ -19,6 +19,11 @@ export interface LyricsEditorSession {
   take: LyricTake | null; viewport: { scale: number; scrollLeft: number };
 }
 
+export interface LyricsEditorLoadState {
+  status: 'loading' | 'ready' | 'error';
+  error?: 'audio' | 'waveform' | 'lyrics';
+}
+
 export type LyricsEditorPhase = 'rough' | 'complete' | 'refine';
 export interface LyricsEditorResult { lyrics: string; document: LyricDocument }
 export interface LyricsEditorOptions {
@@ -41,6 +46,7 @@ export interface LyricsEditorOptions {
   session?: LyricsEditorSession;
 }
 export interface LyricsEditorEventDetails {
+  'lyrics-load-state-change': LyricsEditorLoadState;
   'lyrics-session-change': Record<string, never>;
   'lyrics-save': LyricsEditorResult;
   'lyrics-change': LyricDocument;
@@ -68,6 +74,8 @@ export interface LyricsEditorElement extends HTMLElement {
   requestClose: () => void;
   getDocument: () => LyricDocument;
   getSession: () => LyricsEditorSession | null;
+  /** Ready only after playable audio data, lyrics and the waveform are available. */
+  getLoadState: () => LyricsEditorLoadState;
   /** Refinement is available only after every line is timed and no take is open. */
   setPhase: (phase: 'rough' | 'refine') => boolean;
   addEventListener<K extends keyof LyricsEditorEventMap>(type: K, listener: (this: LyricsEditorElement, event: LyricsEditorEventMap[K]) => void, options?: boolean | AddEventListenerOptions): void;

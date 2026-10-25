@@ -1,4 +1,4 @@
-import type { LyricsEditorElement, LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorTheme, LyricsEditorColors, LyricsEditorSession } from './types.js';
+import type { LyricsEditorElement, LyricsEditorOptions, LyricsEditorEventDetails, LyricsEditorTheme, LyricsEditorColors, LyricsEditorSession, LyricsEditorLoadState } from './types.js';
 import type { LyricDocument } from './lib/lyric-timing.js';
 import type { RecordingMode } from './lib/lyric-recording.js';
 import { readEditorSession } from './lib/editor-session.js';
@@ -76,6 +76,7 @@ export function defineLyricsEditor(tagName = 'lyrics-editor', registry?: CustomE
       this.options = { ...this.options, ...options, colors: { ...(options.colors ?? this.options.colors) }, lyrics: typeof options.lyrics === 'string' ? options.lyrics : copyDocument(options.lyrics) }; this.reset();
       if (session) this.saved = { ...session, waveform: null };
     }
+    getLoadState(): LyricsEditorLoadState { return this.view?.getLoadState() ?? { status: 'loading' }; }
     getSession(): LyricsEditorSession | null { return this.view?.getSession() ?? null; }
     setPhase(phase: 'rough' | 'refine') { return this.view?.setPhase(phase) ?? false; }
     get audioSrc() { return this.options.audioSrc; }
