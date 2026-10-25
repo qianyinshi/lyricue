@@ -7,11 +7,11 @@
   <meta name="theme-color" content="#f6f6f2" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#151a17" media="(prefers-color-scheme: dark)" />
   <title data-i18n="pageTitle">Lyricue · Put words in time</title>
-  <link rel="icon" href="data:," />
+  <link rel="icon" type="image/png" href="./assets/lyricue-symbol.png" />
 </head>
 <body>
 <header class="site-header">
-  <div class="header-start"><span class="wordmark" aria-label="Lyricue">lyricue<span aria-hidden="true">/</span></span>
+  <div class="header-start"><picture class="wordmark"><source media="(prefers-color-scheme: dark)" srcset="./assets/lyricue-logo-dark.png" /><img src="./assets/lyricue-logo.png" width="2087" height="753" alt="Lyricue" /></picture>
     <details class="file-menu" id="file-menu"><summary data-i18n="file" aria-disabled="true" tabindex="-1">File</summary><div class="file-menu-items"><button type="button" id="new-music" data-i18n="newMusic" disabled>Time another track</button><button type="button" id="restart" data-i18n="restart" disabled>Restart timing</button></div></details>
     <button class="nav-button" id="help" type="button" data-i18n="help">Help</button>
   </div>
@@ -19,7 +19,7 @@
 </header>
 <main>
   <section id="welcome" class="welcome" aria-labelledby="welcome-title">
-    <div class="welcome-copy"><span class="wordmark welcome-logo" aria-label="Lyricue">lyricue<span aria-hidden="true">/</span></span><h1 id="welcome-title" data-i18n="intro">Sync lyrics to music. Give every line its moment.</h1></div>
+    <div class="welcome-copy"><picture class="wordmark welcome-logo"><source media="(prefers-color-scheme: dark)" srcset="./assets/lyricue-logo-dark.png" /><img src="./assets/lyricue-logo.png" width="2087" height="753" alt="Lyricue" /></picture><h1 id="welcome-title" data-i18n="intro">Sync lyrics to music. Give every line its moment.</h1></div>
     <div class="start-options"><button id="resume-project" class="start-option" type="button" hidden><span class="start-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6m2-4v6l4 2"/></svg></span><strong data-i18n="resume">Continue previous work</strong></button><button id="start-own" type="button" class="start-option is-primary"><span class="start-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><strong data-i18n="ownAudio">Time my music</strong></button></div>
     <div class="welcome-divider"><span data-i18n="or">or</span></div>
     <button id="start-demo" type="button" class="link-button demo-link" data-i18n="tryDemo">Try it with demo music</button>

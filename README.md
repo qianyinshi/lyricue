@@ -1,4 +1,9 @@
-# Lyricue
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/qianyinshi/lyricue/main/examples/standalone/assets/lyricue-logo-dark.png" />
+    <img src="https://raw.githubusercontent.com/qianyinshi/lyricue/main/examples/standalone/assets/lyricue-logo.png" width="340" alt="Lyricue" />
+  </picture>
+</h1>
 
 A zero-dependency Web Component for syncing lyrics to music, featuring audio waveforms, keyboard controls, and precise timeline editing.
 
